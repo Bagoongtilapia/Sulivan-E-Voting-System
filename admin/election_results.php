@@ -9,43 +9,74 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['Super Ad
 }
 
 // Get election status
-$stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
-$electionStatus = $stmt->fetch(PDO::FETCH_COLUMN) ?? 'Pre-Voting';
+try {
+    $stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
+    $electionStatus = $stmt->fetch(PDO::FETCH_COLUMN) ?? 'Pre-Voting';
+} catch (PDOException $e) {
+    $error = "Error fetching election status";
+    $electionStatus = 'Unknown';
+}
 
-// Get results by position
-$stmt = $pdo->query("
-    SELECT 
-        p.id as position_id,
-        p.position_name,
-        c.id as candidate_id,
-        u.name as candidate_name,
-        COUNT(v.id) as vote_count,
-        (SELECT COUNT(*) FROM users WHERE role = 'Student') as total_voters
-    FROM positions p
-    LEFT JOIN candidates c ON p.id = c.position_id
-    LEFT JOIN users u ON c.student_id = u.id
-    LEFT JOIN votes v ON c.id = v.candidate_id
-    GROUP BY p.id, p.position_name, c.id, u.name
-    ORDER BY p.position_name, vote_count DESC
-");
-$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Get results by position with error handling
+try {
+    // First get total voters and votes cast
+    $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'Student'");
+    $totalVoters = $stmt->fetch(PDO::FETCH_COLUMN);
 
-// Organize results by position
-$positions = [];
-foreach ($results as $row) {
-    if (!isset($positions[$row['position_id']])) {
-        $positions[$row['position_id']] = [
-            'name' => $row['position_name'],
-            'candidates' => [],
-            'total_voters' => $row['total_voters']
-        ];
+    // Get total votes cast (count distinct students who have voted)
+    $stmt = $pdo->query("
+        SELECT COUNT(DISTINCT student_id) 
+        FROM votes 
+        WHERE student_id IS NOT NULL
+    ");
+    $totalVotesCast = $stmt->fetch(PDO::FETCH_COLUMN);
+
+    // Get results by position
+    $stmt = $pdo->query("
+        WITH VoteCounts AS (
+            SELECT 
+                candidate_id,
+                COUNT(*) as vote_count
+            FROM votes
+            WHERE candidate_id IS NOT NULL
+            GROUP BY candidate_id
+        )
+        SELECT 
+            p.id as position_id,
+            p.position_name,
+            c.id as candidate_id,
+            c.name as candidate_name,
+            c.image_url,
+            COALESCE(vc.vote_count, 0) as vote_count,
+            $totalVoters as total_voters
+        FROM positions p
+        LEFT JOIN candidates c ON p.id = c.position_id
+        LEFT JOIN VoteCounts vc ON c.id = vc.candidate_id
+        ORDER BY p.position_name, vote_count DESC
+    ");
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Organize results by position
+    $positions = [];
+    foreach ($results as $row) {
+        if (!isset($positions[$row['position_id']])) {
+            $positions[$row['position_id']] = [
+                'name' => $row['position_name'],
+                'candidates' => [],
+                'total_voters' => $row['total_voters']
+            ];
+        }
+        if ($row['candidate_id']) {
+            $positions[$row['position_id']]['candidates'][] = [
+                'name' => $row['candidate_name'],
+                'image_url' => $row['image_url'],
+                'votes' => $row['vote_count']
+            ];
+        }
     }
-    if ($row['candidate_id']) {
-        $positions[$row['position_id']]['candidates'][] = [
-            'name' => $row['candidate_name'],
-            'votes' => $row['vote_count']
-        ];
-    }
+} catch (PDOException $e) {
+    $error = "Error fetching election results";
+    $positions = [];
 }
 ?>
 
@@ -57,7 +88,6 @@ foreach ($results as $row) {
     <title>Election Results - E-VOTE!</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .sidebar {
             height: 100vh;
@@ -85,8 +115,22 @@ foreach ($results as $row) {
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
+        .card-title {
+            color: #343a40;
+            border-bottom: 2px solid #f8f9fa;
+            padding-bottom: 10px;
+        }
+        .candidate-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .winner {
+            background-color: #d4edda;
+        }
         .progress {
-            height: 25px;
+            height: 20px;
         }
     </style>
 </head>
@@ -100,12 +144,14 @@ foreach ($results as $row) {
                     <a href="dashboard.php" class="nav-link">
                         <i class='bx bxs-dashboard'></i> Dashboard
                     </a>
+                    <?php if ($_SESSION['user_role'] === 'Super Admin'): ?>
                     <a href="manage_candidates.php" class="nav-link">
                         <i class='bx bxs-user-detail'></i> Manage Candidates
                     </a>
                     <a href="manage_positions.php" class="nav-link">
                         <i class='bx bxs-badge'></i> Manage Positions
                     </a>
+                    <?php endif; ?>
                     <a href="manage_voters.php" class="nav-link">
                         <i class='bx bxs-user-account'></i> Manage Voters
                     </a>
@@ -134,11 +180,49 @@ foreach ($results as $row) {
                     </div>
                 </div>
 
-                <?php if ($electionStatus !== 'Ended' && $_SESSION['user_role'] === 'Super Admin'): ?>
-                    <div class="alert alert-warning">
-                        <i class='bx bx-info-circle'></i>
-                        Note: Results are preliminary until the election is marked as ended.
+                <?php if (isset($error)): ?>
+                    <div class="alert alert-danger">
+                        <?php echo $error; ?>
                     </div>
+                <?php endif; ?>
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Total Eligible Voters</h5>
+                                <h3><?php echo number_format($totalVoters); ?></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Total Votes Cast</h5>
+                                <h3><?php echo number_format($totalVotesCast); ?></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Voter Turnout</h5>
+                                <h3><?php 
+                                    echo $totalVoters > 0 ? round(($totalVotesCast / $totalVoters) * 100, 1) : 0;
+                                ?>%</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Button (Super Admin Only) -->
+                <?php if ($_SESSION['user_role'] === 'Super Admin'): ?>
+                <div class="mb-4">
+                    <a href="generate_pdf.php" class="btn btn-danger btn-export">
+                        <i class='bx bxs-file-pdf'></i> Export as PDF
+                    </a>
+                </div>
                 <?php endif; ?>
 
                 <!-- Results by Position -->
@@ -148,59 +232,53 @@ foreach ($results as $row) {
                             <div class="card">
                                 <div class="card-body">
                                     <h5 class="card-title"><?php echo htmlspecialchars($position['name']); ?></h5>
-                                    <div class="position-results">
-                                        <?php 
-                                        foreach ($position['candidates'] as $candidate): 
-                                            $percentage = $position['total_voters'] > 0 
-                                                ? ($candidate['votes'] / $position['total_voters']) * 100 
-                                                : 0;
-                                        ?>
-                                            <div class="candidate-result mb-3">
-                                                <div class="d-flex justify-content-between mb-1">
-                                                    <span><?php echo htmlspecialchars($candidate['name']); ?></span>
-                                                    <span><?php echo $candidate['votes']; ?> votes (<?php echo number_format($percentage, 1); ?>%)</span>
-                                                </div>
-                                                <div class="progress">
-                                                    <div class="progress-bar" role="progressbar" 
-                                                         style="width: <?php echo $percentage; ?>%"
-                                                         aria-valuenow="<?php echo $percentage; ?>" 
-                                                         aria-valuemin="0" 
-                                                         aria-valuemax="100">
-                                                    </div>
+                                    
+                                    <?php 
+                                    // Sort candidates by votes
+                                    usort($position['candidates'], function($a, $b) {
+                                        return $b['votes'] - $a['votes'];
+                                    });
+                                    
+                                    // Calculate total votes for this position
+                                    $positionTotalVotes = array_sum(array_column($position['candidates'], 'votes'));
+                                    
+                                    foreach ($position['candidates'] as $index => $candidate): 
+                                        $percentage = $positionTotalVotes > 0 ? ($candidate['votes'] / $positionTotalVotes) * 100 : 0;
+                                        $isWinner = $index === 0 && $candidate['votes'] > 0;
+                                    ?>
+                                        <div class="candidate-row p-2 mb-2 <?php echo $isWinner ? 'winner' : ''; ?> rounded">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <?php if ($candidate['image_url']): ?>
+                                                    <img src="<?php echo htmlspecialchars($candidate['image_url']); ?>" 
+                                                         class="candidate-image me-3" 
+                                                         alt="<?php echo htmlspecialchars($candidate['name']); ?>">
+                                                <?php endif; ?>
+                                                <div>
+                                                    <h6 class="mb-0">
+                                                        <?php echo htmlspecialchars($candidate['name']); ?>
+                                                        <?php if ($isWinner): ?>
+                                                            <i class='bx bxs-crown text-warning'></i>
+                                                        <?php endif; ?>
+                                                    </h6>
+                                                    <small><?php echo number_format($candidate['votes']); ?> votes (<?php echo round($percentage, 1); ?>%)</small>
                                                 </div>
                                             </div>
-                                        <?php endforeach; ?>
-                                        
-                                        <?php if (empty($position['candidates'])): ?>
-                                            <p class="text-muted">No candidates for this position</p>
-                                        <?php endif; ?>
-
-                                        <div class="mt-3">
-                                            <small class="text-muted">
-                                                Total Voters: <?php echo $position['total_voters']; ?>
-                                            </small>
+                                            <div class="progress">
+                                                <div class="progress-bar <?php echo $isWinner ? 'bg-success' : 'bg-primary'; ?>" 
+                                                     role="progressbar" 
+                                                     style="width: <?php echo $percentage; ?>%" 
+                                                     aria-valuenow="<?php echo $percentage; ?>" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
-
-                <?php if ($electionStatus === 'Ended'): ?>
-                    <div class="card mt-4">
-                        <div class="card-body">
-                            <h5 class="card-title">Download Results</h5>
-                            <p class="card-text">Export the complete election results as a PDF or Excel file.</p>
-                            <a href="export_results.php?format=pdf" class="btn btn-primary me-2">
-                                <i class='bx bxs-file-pdf'></i> Export as PDF
-                            </a>
-                            <a href="export_results.php?format=excel" class="btn btn-success">
-                                <i class='bx bxs-file-export'></i> Export as Excel
-                            </a>
-                        </div>
-                    </div>
-                <?php endif; ?>
             </div>
         </div>
     </div>

@@ -66,12 +66,14 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <a href="dashboard.php" class="nav-link">
                         <i class='bx bxs-dashboard'></i> Dashboard
                     </a>
+                    <?php if ($_SESSION['user_role'] === 'Super Admin'): ?>
                     <a href="manage_candidates.php" class="nav-link">
                         <i class='bx bxs-user-detail'></i> Manage Candidates
                     </a>
                     <a href="manage_positions.php" class="nav-link">
                         <i class='bx bxs-badge'></i> Manage Positions
                     </a>
+                    <?php endif; ?>
                     <a href="manage_voters.php" class="nav-link active">
                         <i class='bx bxs-user-account'></i> Manage Voters
                     </a>
