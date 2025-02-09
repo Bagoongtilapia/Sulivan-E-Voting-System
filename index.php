@@ -7,8 +7,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #393CB2;
+            --primary-light: #5558CD;
+            --primary-dark: #2A2D8F;
+            --accent-color: #E8E9FF;
+            --gradient-primary: linear-gradient(135deg, #393CB2, #5558CD);
+        }
+
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #E8E9FF 0%, #F8F9FF 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -23,29 +31,21 @@
             align-items: center;
         }
         .login-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 24px rgba(57, 60, 178, 0.1);
+            overflow: hidden;
             width: 100%;
             max-width: 400px;
-            padding: 30px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin: 0 auto;
+            padding: 40px;
         }
-        .login-container:hover {
-            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
-        }
-        .logo {
+        .login-header {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 20px;
             text-align: center;
-            margin-bottom: 30px;
-            color: #4a4a4a;
-        }
-        .logo h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            border-radius: 10px;
         }
         .form-control {
             border-radius: 10px;
@@ -54,8 +54,8 @@
             background-image: none !important;
         }
         .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(57, 60, 178, 0.25);
         }
         .form-control.is-invalid {
             border-color: #dc3545;
@@ -79,18 +79,27 @@
             z-index: 10;
         }
         .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: var(--gradient-primary);
             border: none;
-            padding: 12px 30px;
-            border-radius: 10px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            width: 100%;
-            margin-top: 20px;
+            padding: 12px 25px;
+            font-weight: 600; 
         }
         .btn-primary:hover {
-            background: linear-gradient(45deg, #764ba2, #667eea);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #2A2D8F, #393CB2);
+        }
+        .input-group-text {
+            background: var(--accent-color);
+            border-color: #dee2e6;
+            color: var(--primary-color);
+        }
+        .system-name {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        .system-tagline {
+            opacity: 0.9;
+            font-size: 0.9rem;
+            margin-bottom: 0;
         }
         .text-center {
             text-align: center;
@@ -104,9 +113,9 @@
 <body>
     <div class="container">
         <div class="login-container">
-            <div class="logo">
-                <h2>E-VOTE!</h2>
-                <p class="text-muted">Welcome to the E-Voting System</p>
+            <div class="login-header">
+                <h2 class="system-name">E-VOTE!</h2>
+                <p class="system-tagline">Welcome to the E-Voting System</p>
             </div>
             <form action="auth/login.php" method="POST" class="needs-validation" novalidate>
                 <div class="mb-4">

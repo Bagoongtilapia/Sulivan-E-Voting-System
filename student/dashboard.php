@@ -61,6 +61,7 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
             SELECT 
                 p.id as position_id,
                 p.position_name,
+                p.max_votes,
                 c.id as candidate_id,
                 c.name as candidate_name,
                 c.image_path,
@@ -77,6 +78,7 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
                 $positions[$row['position_id']] = [
                     'id' => $row['position_id'],
                     'name' => $row['position_name'],
+                    'max_votes' => $row['max_votes'],
                     'candidates' => []
                 ];
             }
@@ -96,6 +98,45 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
         $error = "Error fetching positions and candidates";
     }
 }
+
+// Check if form is submitted
+if(isset($_POST['vote'])) {
+    $votes = $_POST['vote'];
+    
+    // Begin transaction
+    $pdo->beginTransaction();
+    
+    try {
+        // Insert each vote
+        foreach($votes as $position_id => $candidate_ids) {
+            foreach($candidate_ids as $candidate_id) {
+                $sql = "INSERT INTO votes (student_id, candidate_id, position_id) VALUES (?, ?, ?)";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$student, $candidate_id, $position_id]);
+            }
+        }
+        
+        // Update voters status
+        $sql = "UPDATE users SET voted = 1 WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$_SESSION['user_id']]);
+        
+        // Commit transaction
+        $pdo->commit();
+        
+        // Unset session and redirect
+        unset($_SESSION['user_id']);
+        header('location: ../index.php');
+        exit();
+        
+    } catch (PDOException $e) {
+        // Rollback on error
+        $pdo->rollBack();
+        $_SESSION['error'] = $e->getMessage();
+        header('location: dashboard.php');
+        exit();
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -103,26 +144,66 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard - E-VOTE!</title>
+    <title>E-Voting System</title>
+    
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    
+    <!-- AdminLTE CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- BoxIcons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <!-- Custom CSS -->
     <style>
         :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --background-color: #f8f9fa;
-            --card-shadow: 0 8px 24px rgba(149, 157, 165, 0.2);
+            --primary-color: #393CB2;
+            --primary-light: #5558CD;
+            --primary-dark: #2A2D8F;
+            --accent-color: #E8E9FF;
+            --gradient-primary: linear-gradient(135deg, #393CB2, #5558CD);
+            --card-shadow: 0 8px 24px rgba(57, 60, 178, 0.2);
         }
 
         body {
-            background: linear-gradient(135deg, #f6f8fd 0%, #f1f4f9 100%);
+            background: linear-gradient(135deg, #E8E9FF 0%, #F8F9FF 100%);
             min-height: 100vh;
         }
 
         .navbar {
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)) !important;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            background: var(--gradient-primary);
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(57, 60, 178, 0.15);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+
+        .navbar-brand img {
+            width: 50px;
+            height: 50px;
+            margin-right: 12px;
+            object-fit: cover;
+            border-radius: 50%;
+            background-color: #393CB2;
+            padding: -10px;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .navbar-brand:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            border-color: white;
         }
 
         .container {
@@ -138,11 +219,9 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             margin-bottom: 25px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .card:hover {
-            transform: translateY(-5px);
             box-shadow: 0 12px 30px rgba(149, 157, 165, 0.3);
         }
 
@@ -167,7 +246,7 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
             font-weight: 600;
             margin-bottom: 30px;
             padding-bottom: 15px;
-            border-bottom: 2px solid #eef2f7;
+            border-bottom: 2px solid var(--primary-light);
             text-align: center;
         }
 
@@ -188,18 +267,16 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
             flex-direction: column;
             height: 100%;
             cursor: pointer;
-            transition: all 0.3s ease;
             position: relative;
         }
 
         .candidate-card:hover {
-            transform: translateY(-3px);
             box-shadow: 0 1px 6px rgba(0,0,0,0.2);
         }
 
         .candidate-card.selected {
-            border: 2px solid #007bff;
-            background-color: rgba(0, 123, 255, 0.05);
+            border: 2px solid var(--primary-color);
+            background-color: rgba(57, 60, 178, 0.05);
         }
 
         .candidate-card.selected::after {
@@ -209,7 +286,7 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
             position: absolute;
             top: -10px;
             right: -10px;
-            background: #007bff;
+            background: var(--primary-color);
             color: white;
             width: 25px;
             height: 25px;
@@ -245,7 +322,7 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
         }
 
         .btn-platform {
-            background: #3c8dbc;
+            background: var(--primary-color);
             border: none;
             color: white;
             padding: 6px 12px;
@@ -258,7 +335,7 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
         }
 
         .btn-platform:hover {
-            background: #367fa9;
+            background: var(--primary-light);
             color: white;
         }
 
@@ -267,7 +344,7 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
         }
 
         .candidate-name {
-            color: #2c3e50;
+            color: var(--primary-color);
             font-size: 1.1rem;
             margin-bottom: 0.5rem;
             font-weight: 600;
@@ -283,11 +360,11 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
         }
 
         .candidate-position i {
-            color: #28a745;
+            color: var(--primary-light);
         }
 
         .btn-vote {
-            background: #28a745;
+            background: var(--primary-color);
             border: none;
             color: white;
             padding: 10px 20px;
@@ -300,7 +377,7 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
         }
 
         .btn-vote:hover {
-            background: #218838;
+            background: var(--primary-light);
             color: white;
         }
 
@@ -309,11 +386,11 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
         }
 
         .position-title {
-            color: #2c3e50;
+            color: var(--primary-color);
             font-size: 1.5rem;
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
-            border-bottom: 2px solid #f4f6f9;
+            border-bottom: 2px solid var(--primary-light);
         }
 
         .candidates-grid {
@@ -328,7 +405,7 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
             height: 100px;
             border-radius: 50%;
             overflow: hidden;
-            border: 3px solid #f4f6f9;
+            border: 2px solid var(--primary-color);
         }
 
         .candidate-image {
@@ -337,67 +414,157 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
             object-fit: cover;
         }
 
-        .platform-modal .modal-content {
-            background: #f8f9fa;
+        .modal-content {
             border: none;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(57, 60, 178, 0.15);
         }
 
-        .platform-modal .modal-header {
-            background: #6c757d;
+        .modal-header {
+            background: var(--gradient-primary);
             color: white;
-            border-bottom: 0;
-            padding: 15px;
-            border-radius: 8px 8px 0 0;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            border-bottom: none;
+            padding: 1.25rem;
         }
 
-        .platform-modal .modal-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #fff;
+        .modal-header .close {
+            color: white;
+            opacity: 0.8;
+            text-shadow: none;
+            margin: -1rem -1rem -1rem auto;
         }
 
-        .platform-modal .modal-body {
-            padding: 20px;
-            background: #fff;
-            border-radius: 0 0 8px 8px;
-        }
-
-        .platform-modal .platform-content {
-            color: #495057;
-            line-height: 1.6;
-            font-size: 1rem;
-        }
-
-        #platformCandidateName {
-            color: #343a40;
+        .modal-title {
             font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            background-color: white;
+        }
+
+        .modal-footer {
+            background-color: #f4f6f9;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+            padding: 1rem 1.5rem;
+        }
+
+        .btn-default {
+            background-color: #E8E9FF;
+            color: var(--primary-color);
+            border: none;
+        }
+
+        .btn-default:hover {
+            background-color: #D8D9FF;
+            color: var(--primary-dark);
+        }
+
+        .candidate-platform-header {
+            color: var(--primary-color);
+            font-size: 1.1rem;
             font-weight: 600;
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
-            border-bottom: 2px solid #e9ecef;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .platform-content {
+            color: #4A4B57;
+            line-height: 1.6;
+            font-size: 1rem;
+            padding: 0.5rem;
+        }
+        
+        .results-container {
+            padding: 20px;
+        }
+        
+        .winner-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(57, 60, 178, 0.1);
+        }
+        
+        .winner-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(57, 60, 178, 0.03);
+        }
+        
+        .winner-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #393CB2;
+        }
+        
+        .winner-details {
+            flex-grow: 1;
+        }
+        
+        .winner-details h4 {
+            color: #393CB2;
+            margin: 0 0 5px 0;
+            font-size: 1.2rem;
+        }
+        
+        .vote-count {
+            color: #2A2D8F;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        
+        .position-header {
+            color: #393CB2;
+            border-bottom: 2px solid #E8E9FF;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .winner-badge {
+            background: linear-gradient(135deg, #393CB2, #5558CD);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 10px;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class='bx bx-check-shield me-2'></i>E-VOTE!
+            <a class="navbar-brand text-white" href="#">
+                <img src="../image/Untitled.jpg" 
+                     alt="E-Voting System" 
+                     onerror="this.src='../uploads/default-logo.png'">
+                E-Voting System
             </a>
-            <div class="d-flex align-items-center">
-                <span class="navbar-text me-3 text-white">
-                    <i class='bx bxs-user-circle me-1'></i>
+            <div class="ms-auto d-flex align-items-center">
+                <span class="text-white me-3">
+                    <i class='bx bx-user-circle me-1'></i>
                     <?php echo htmlspecialchars($_SESSION['user_name']); ?>
                 </span>
-                <?php if ($electionStatus === 'Ended'): ?>
-                <a href="election_results.php" class="btn btn-light btn-sm me-2">
-                    <i class='bx bxs-trophy'></i> View Results
-                </a>
-                <?php endif; ?>
-                <a href="../auth/logout.php" class="btn btn-outline-light btn-sm">
-                    <i class='bx bxs-log-out'></i> Logout
+                <a href="../auth/logout.php" class="btn btn-outline-light">
+                    <i class='bx bx-log-out-circle me-1'></i>
+                    Sign out
                 </a>
             </div>
         </div>
@@ -415,7 +582,7 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="card-title mb-0">
-                        <i class='bx bx-ballot me-2'></i>Student Voting Panel
+                        <i class='bx bx-ballot me-2'></i>
                     </h2>
                     <span class="badge status-badge bg-<?php 
                         echo $electionStatus === 'Voting' ? 'success' : 
@@ -429,12 +596,102 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
                 <?php if ($electionStatus === 'Pre-Voting'): ?>
                     <div class="alert alert-warning">
                         <i class='bx bx-time-five me-2'></i>
-                        Voting has not yet started. Please check back later.
+                        Voting is currently closed.. Please come back soon to cast your vote.
                     </div>
                 <?php elseif ($electionStatus === 'Ended'): ?>
-                    <div class="alert alert-info">
-                        <i class='bx bx-info-circle me-2'></i>
-                        The election has ended. You can view the results now.
+                    <div class="results-container">
+                        <h2 class="text-center mb-4">Election Results</h2>
+                        <?php
+                        try {
+                            // Get positions with winners and vote counts
+                            $sql = "SELECT 
+                                p.id, 
+                                p.position_name, 
+                                p.max_votes,
+                                c.id as candidate_id, 
+                                c.name as candidate_name, 
+                                c.image_path, 
+                                c.platform,
+                                (SELECT COUNT(*) 
+                                 FROM votes v 
+                                 WHERE v.candidate_id = c.id) as vote_count
+                            FROM positions p
+                            LEFT JOIN candidates c ON p.id = c.position_id
+                            ORDER BY p.position_name, vote_count DESC";
+                            
+                            $stmt = $pdo->prepare($sql);
+                            $stmt->execute();
+                            
+                            $results = [];
+                            
+                            while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                if(!isset($results[$row['id']])) {
+                                    $results[$row['id']] = [
+                                        'position_name' => $row['position_name'],
+                                        'max_votes' => $row['max_votes'],
+                                        'candidates' => []
+                                    ];
+                                }
+                                
+                                // Add all candidates with their vote counts
+                                if ($row['candidate_id']) {
+                                    $results[$row['id']]['candidates'][] = [
+                                        'name' => $row['candidate_name'],
+                                        'image_path' => $row['image_path'] ? '../' . $row['image_path'] : '../uploads/candidates/default.png',
+                                        'platform' => $row['platform'],
+                                        'votes' => (int)$row['vote_count']
+                                    ];
+                                }
+                            }
+
+                            // Display results
+                            foreach($results as $position): ?>
+                                <div class="winner-card">
+                                    <h3 class="position-header"><?php echo htmlspecialchars($position['position_name']); ?></h3>
+                                    <?php 
+                                    // Sort candidates by vote count
+                                    usort($position['candidates'], function($a, $b) {
+                                        return $b['votes'] - $a['votes'];
+                                    });
+
+                                    foreach($position['candidates'] as $index => $candidate): 
+                                        $isWinner = $index < $position['max_votes'];
+                                    ?>
+                                        <div class="winner-info">
+                                            <img src="<?php echo htmlspecialchars($candidate['image_path']); ?>" 
+                                                 class="winner-image" 
+                                                 alt="<?php echo htmlspecialchars($candidate['name']); ?>"
+                                                 onerror="this.src='../uploads/candidates/default.png'">
+                                            <div class="winner-details">
+                                                <h4>
+                                                    <?php echo htmlspecialchars($candidate['name']); ?>
+                                                    <?php if($isWinner): ?>
+                                                        <span class="winner-badge">
+                                                            <i class="fas fa-crown"></i> Winner
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </h4>
+                                                <p class="vote-count">
+                                                    <i class="fas fa-vote-yea"></i>
+                                                    <?php echo $candidate['votes']; ?> vote<?php echo $candidate['votes'] != 1 ? 's' : ''; ?>
+                                                </p>
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-outline-primary view-platform" 
+                                                        data-name="<?php echo htmlspecialchars($candidate['name']); ?>"
+                                                        data-platform="<?php echo htmlspecialchars($candidate['platform']); ?>"
+                                                        onclick="viewPlatform(this)">
+                                                    <i class="fas fa-book"></i> View Platform
+                                                </button>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endforeach;
+                            
+                        } catch(PDOException $e) {
+                            echo '<div class="alert alert-danger">Error fetching election results: ' . htmlspecialchars($e->getMessage()) . '</div>';
+                        }
+                        ?>
                     </div>
                 <?php elseif ($hasVoted): ?>
                     <div class="alert alert-success">
@@ -474,11 +731,10 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
                                                         </button>
                                                     </div>
                                                 </div>
-                                                <input type="radio" 
-                                                       name="vote[<?php echo $position['id']; ?>]" 
+                                                <input type="checkbox" 
+                                                       name="vote[<?php echo $position['id']; ?>][]" 
                                                        value="<?php echo $candidate['id']; ?>" 
-                                                       class="form-check-input" 
-                                                       required>
+                                                       class="form-check-input">
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
@@ -498,27 +754,40 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
     </div>
 
     <!-- Platform Modal -->
-    <div class="modal fade" id="platformModal" tabindex="-1" aria-labelledby="platformModalLabel" aria-hidden="true">
+    <div class="modal fade" id="platformModal" tabindex="-1" role="dialog" aria-labelledby="platformModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header bg-primary">
-                    <h5 class="modal-title text-white" id="platformModalLabel">
-                        <i class="fas fa-scroll me-2"></i>
-                        Candidate Platform
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header">
+                    <h4 class="modal-title" id="platformModalLabel">
+                        <i class="bx bx-book-open mr-2"></i>
+                        <span class="candidate-name"></span>
+                    </h4>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
-                    <h4 id="platformCandidateName" class="mb-3"></h4>
-                    <div id="platformText" class="platform-content"></div>
+                    <div class="candidate-platform-header">
+                        Platform and Goals
+                    </div>
+                    <div class="platform-content" id="platformContent">
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i> Close
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AdminLTE JS -->
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
         // Initialize all modals
         var platformModal = new bootstrap.Modal(document.getElementById('platformModal'));
@@ -532,8 +801,8 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
             const platform = button.getAttribute('data-platform');
             
             // Update modal content
-            document.getElementById('platformCandidateName').textContent = name;
-            document.getElementById('platformText').textContent = platform || 'No platform information available.';
+            document.querySelector('.modal-title .candidate-name').textContent = name;
+            document.getElementById('platformContent').textContent = platform || 'No platform information available.';
             
             // Show the modal
             platformModal.show();
@@ -545,40 +814,71 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
                 return;
             }
             
-            // Remove selected class from all cards in the same position
-            document.querySelectorAll(`input[name="vote[${positionId}]"]`)
-                .forEach(input => input.closest('.candidate-card').classList.remove('selected'));
+            const checkbox = card.querySelector('input[type="checkbox"]');
+            const positions = <?php echo json_encode($positions); ?>;
+            const maxVotes = positions[positionId]?.max_votes || 1;
+            const currentChecked = document.querySelectorAll(`input[name="vote[${positionId}][]"]:checked`).length;
             
-            // Add selected class to clicked card and check its radio button
-            card.classList.add('selected');
-            const radio = card.querySelector('input[type="radio"]');
-            if (radio) {
-                radio.checked = true;
+            // If trying to select more than max_votes, prevent it
+            if (!checkbox.checked && currentChecked >= maxVotes) {
+                toastr.warning(`You can only select ${maxVotes} candidate(s) for this position`);
+                return;
+            }
+            
+            // Toggle checkbox
+            checkbox.checked = !checkbox.checked;
+            
+            // Toggle selected class
+            if (checkbox.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
             }
         }
 
         // Form validation with AdminLTE toast notifications
-        document.getElementById('votingForm')?.addEventListener('submit', function(e) {
-            const requiredVotes = document.querySelectorAll('input[type="radio"][required]');
-            let allVoted = true;
+        document.getElementById('votingForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            let isValid = true;
+            const positions = <?php echo json_encode($positions); ?>;
 
-            requiredVotes.forEach(voteGroup => {
-                const name = voteGroup.getAttribute('name');
-                const voted = document.querySelector(`input[name="${name}"]:checked`);
-                if (!voted) {
-                    allVoted = false;
-                    const position = voteGroup.closest('.voting-section')
-                        .querySelector('.position-title').textContent.trim();
-                    
-                    // Show toast notification
-                    toastr.warning(`Please select a candidate for ${position}`);
+            // Check each position
+            for (const positionId in positions) {
+                const position = positions[positionId];
+                const checkedCount = document.querySelectorAll(`input[name="vote[${positionId}][]"]:checked`).length;
+                const maxVotes = position.max_votes || 1;
+
+                if (checkedCount === 0) {
+                    isValid = false;
+                    toastr.warning(`Please select at least one candidate for ${position.name}`);
+                } else if (checkedCount > maxVotes) {
+                    isValid = false;
+                    toastr.warning(`You can only select ${maxVotes} candidate(s) for ${position.name}`);
                 }
-            });
+            }
 
-            if (!allVoted) {
-                e.preventDefault();
+            if (isValid) {
+                // Remove the event.preventDefault() effect and submit the form
+                event.target.submit();
             }
         });
+
+        // Initialize toastr options
+        toastr.options = {
+            "closeButton": true,
+            "newestOnTop": false,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": true,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
     </script>
 </body>
 </html>
