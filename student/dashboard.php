@@ -52,6 +52,9 @@ try {
     $error = "Error checking voting status";
     $hasVoted = false;
 }
+// Check for success/error messages from URL parameters
+$success = isset($_GET['success']) ? $_GET['success'] : null;
+$error = isset($_GET['error']) ? $_GET['error'] : null;
 
 // Get positions and candidates if in voting phase
 $positions = [];
@@ -68,7 +71,7 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
                 c.platform
             FROM positions p
             LEFT JOIN candidates c ON p.id = c.position_id
-            ORDER BY p.position_name, c.name
+            ORDER BY p.id, c.id
         ");
         error_log("Fetching positions and candidates query: " . $stmt->queryString);
         
@@ -546,6 +549,320 @@ if(isset($_POST['vote'])) {
             font-size: 0.8rem;
             margin-left: 10px;
         }
+
+        .election-status {
+            background: white;
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 15px rgba(57, 60, 178, 0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .election-status::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary-color);
+        }
+
+        .election-status.voting::before {
+            background: #28a745;
+        }
+
+        .election-status.ended::before {
+            background: #dc3545;
+        }
+
+        .election-status.pre-voting::before {
+            background: #ffc107;
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .status-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator.voting {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .status-indicator.ended {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .status-indicator.pre-voting {
+            background: rgba(255, 193, 7, 0.1);
+            color: #856404;
+        }
+
+        .status-indicator i {
+            margin-right: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .preview-modal .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 15px 35px rgba(57, 60, 178, 0.15);
+            background: #f8f9ff;
+        }
+
+        .preview-modal .modal-header {
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 20px 20px 0 0;
+            padding: 1.75rem;
+            border-bottom: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-modal .modal-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,0.1));
+        }
+
+        .preview-modal .modal-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-modal .modal-title i {
+            font-size: 1.5rem;
+        }
+
+        .preview-modal .btn-close-white {
+            opacity: 0.8;
+            transition: all 0.2s ease;
+        }
+
+        .preview-modal .btn-close-white:hover {
+            opacity: 1;
+        }
+
+        .preview-modal .modal-body {
+            padding: 2rem;
+        }
+
+        .preview-notice {
+            background: linear-gradient(45deg, #fff8e1, #fff3cd);
+            color: #856404;
+            padding: 1.25rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 3px 10px rgba(133, 100, 4, 0.1);
+        }
+
+        .preview-notice i {
+            font-size: 1.5rem;
+            color: #f4b619;
+        }
+
+        .preview-position {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 3px 15px rgba(57, 60, 178, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .preview-position:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(57, 60, 178, 0.12);
+        }
+
+        .preview-position::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary-color);
+            border-radius: 3px;
+        }
+
+        .preview-position h4 {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            margin-bottom: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            letter-spacing: 0.3px;
+        }
+
+        .preview-position h4 .position-count {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+            background: var(--accent-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+        }
+
+        .preview-candidates {
+            padding-left: 0;
+        }
+
+        .preview-candidate {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            padding: 1rem;
+            background: var(--accent-color);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .preview-candidate:last-child {
+            margin-bottom: 0;
+        }
+
+        .preview-candidate:hover {
+            transform: translateX(5px);
+            background: #e0e1ff;
+        }
+
+        .preview-candidate i {
+            color: var(--primary-color);
+            font-size: 1.4rem;
+            background: white;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(57, 60, 178, 0.15);
+        }
+
+        .preview-candidate .candidate-info {
+            flex-grow: 1;
+        }
+
+        .preview-candidate .candidate-name {
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .preview-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #eef0ff;
+        }
+
+        .btn-modify {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.9rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-modify:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(46, 204, 113, 0.2);
+        }
+
+        .btn-confirm:hover {
+            background: linear-gradient(45deg, #27ae60, #219a52);
+            transform: translateY(-1px);
+            color: white;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+        }
+
+        .btn-confirm i {
+            font-size: 1.1rem;
+        }
+        
+        .preview-candidate.no-selection {
+            background: #f8f9fa;
+            opacity: 0.8;
+        }
+
+        .preview-candidate.no-selection i {
+            color: #6c757d;
+            background: #e9ecef;
+        }
+
+        .preview-candidate.no-selection .candidate-name {
+            color: #6c757d;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -580,17 +897,17 @@ if(isset($_POST['vote'])) {
 
         <div class="card animate-fadeInUp">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="card-title mb-0">
-                        <i class='bx bx-ballot me-2'></i>
-                    </h2>
-                    <span class="badge status-badge bg-<?php 
-                        echo $electionStatus === 'Voting' ? 'success' : 
-                            ($electionStatus === 'Ended' ? 'danger' : 'warning'); 
-                    ?>">
-                        <i class='bx bx-radio-circle-marked me-1'></i>
-                        Status: <?php echo htmlspecialchars($electionStatus); ?>
-                    </span>
+                <div class="election-status <?php echo strtolower($electionStatus); ?>">
+                    <div class="status-header">
+                        <h3>Election Status</h3>
+                        <div class="status-indicator <?php echo strtolower($electionStatus); ?>">
+                            <i class="bx <?php 
+                                echo $electionStatus === 'Voting' ? 'bx-check-circle' : 
+                                    ($electionStatus === 'Ended' ? 'bx-x-circle' : 'bx-time'); 
+                            ?>"></i>
+                            <?php echo $electionStatus; ?>
+                        </div>
+                    </div>
                 </div>
 
                 <?php if ($electionStatus === 'Pre-Voting'): ?>
@@ -743,8 +1060,8 @@ if(isset($_POST['vote'])) {
                         <?php endforeach; ?>
 
                         <div class="text-center">
-                            <button type="submit" class="btn btn-vote">
-                                <i class='bx bx-check-circle me-2'></i>Submit Your Vote
+                            <button type="button" class="btn btn-vote" onclick="previewVotes()">
+                                <i class='bx bx-check-circle me-2'></i>Preview Your Vote
                             </button>
                         </div>
                     </form>
@@ -782,6 +1099,33 @@ if(isset($_POST['vote'])) {
         </div>
     </div>
 
+    <!-- Preview Modal -->
+    <div class="modal fade preview-modal" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewModalLabel">
+                        <i class='bx bx-check-square'></i>
+                        Review Your Votes
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="preview-notice">
+                        <i class='bx bx-info-circle'></i>
+                        <span>Please review your selections carefully. You cannot change your votes after submission.</span>
+                    </div>
+                    <div id="previewContent"></div>
+                    <div class="preview-buttons">
+                        <button type="button" class="btn btn-confirm" onclick="submitVote()">
+                            <i class='bx bx-check-circle'></i>Confirm and Submit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- AdminLTE JS -->
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
     
@@ -791,6 +1135,7 @@ if(isset($_POST['vote'])) {
     <script>
         // Initialize all modals
         var platformModal = new bootstrap.Modal(document.getElementById('platformModal'));
+        var previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
         
         function viewPlatform(button) {
             // Prevent the card selection
@@ -806,6 +1151,77 @@ if(isset($_POST['vote'])) {
             
             // Show the modal
             platformModal.show();
+        }
+
+        function previewVotes() {
+            const positions = <?php echo json_encode($positions); ?>;
+            let preview = {};
+            
+            // First, initialize all positions in the preview
+            for (const positionId in positions) {
+                const position = positions[positionId];
+                preview[position.name] = {
+                    candidates: [],
+                    maxVotes: position.max_votes,
+                    positionName: position.name
+                };
+            }
+            
+            // Then collect selected candidates
+            for (const positionId in positions) {
+                const position = positions[positionId];
+                const selectedCandidates = document.querySelectorAll(`input[name="vote[${positionId}][]"]:checked`);
+                
+                // Only check for maximum votes limit
+                if (selectedCandidates.length > position.max_votes) {
+                    toastr.warning(`You can only select ${position.max_votes} candidate(s) for ${position.name}`);
+                    return;
+                }
+                
+                // Add selected candidates to the preview
+                if (selectedCandidates.length > 0) {
+                    preview[position.name].candidates = Array.from(selectedCandidates).map(checkbox => {
+                        const card = checkbox.closest('.candidate-card');
+                        return card.querySelector('.candidate-name').textContent.trim();
+                    });
+                }
+            }
+            
+            // Generate preview HTML
+            let html = '<ul class="preview-list">';
+            for (const positionName in preview) {
+                const data = preview[positionName];
+                html += `
+                    <li class="preview-position">
+                        <h4>${data.positionName}
+                            <span class="position-count">${data.candidates.length} of ${data.maxVotes} selected</span>
+                        </h4>`;
+                
+                // Only show candidates section if there are selections
+                if (data.candidates.length > 0) {
+                    html += '<div class="preview-candidates">';
+                    data.candidates.forEach(candidate => {
+                        html += `
+                            <div class="preview-candidate">
+                                <i class='bx bx-check-circle'></i>
+                                <div class="candidate-info">
+                                    <p class="candidate-name">${candidate}</p>
+                                </div>
+                            </div>`;
+                    });
+                    html += '</div>';
+                }
+                
+                html += '</li>';
+            }
+            html += '</ul>';
+            
+            document.getElementById('previewContent').innerHTML = html;
+            previewModal.show();
+        }
+
+        function submitVote() {
+            document.getElementById('votingForm').submit();
         }
 
         function selectCandidate(card, positionId) {
@@ -838,29 +1254,8 @@ if(isset($_POST['vote'])) {
 
         // Form validation with AdminLTE toast notifications
         document.getElementById('votingForm').addEventListener('submit', function(event) {
+            // Always prevent default submit since we're using our own submission flow
             event.preventDefault();
-            let isValid = true;
-            const positions = <?php echo json_encode($positions); ?>;
-
-            // Check each position
-            for (const positionId in positions) {
-                const position = positions[positionId];
-                const checkedCount = document.querySelectorAll(`input[name="vote[${positionId}][]"]:checked`).length;
-                const maxVotes = position.max_votes || 1;
-
-                if (checkedCount === 0) {
-                    isValid = false;
-                    toastr.warning(`Please select at least one candidate for ${position.name}`);
-                } else if (checkedCount > maxVotes) {
-                    isValid = false;
-                    toastr.warning(`You can only select ${maxVotes} candidate(s) for ${position.name}`);
-                }
-            }
-
-            if (isValid) {
-                // Remove the event.preventDefault() effect and submit the form
-                event.target.submit();
-            }
         });
 
         // Initialize toastr options

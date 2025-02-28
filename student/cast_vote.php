@@ -46,9 +46,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Record votes for this position
-            foreach ($selected_candidates as $candidate_id) {
-                $stmt = $pdo->prepare("INSERT INTO votes (student_id, candidate_id) VALUES (?, ?)");
-                $stmt->execute([$_SESSION['user_id'], $candidate_id]);
+            if (empty($selected_candidates)) {
+                // Record a blank vote for this position
+                $stmt = $pdo->prepare("INSERT INTO votes (student_id, candidate_id, is_blank_vote) VALUES (?, NULL, 1)");
+                $stmt->execute([$_SESSION['user_id']]);
+            } else {
+                // Record votes for selected candidates
+                foreach ($selected_candidates as $candidate_id) {
+                    $stmt = $pdo->prepare("INSERT INTO votes (student_id, candidate_id, is_blank_vote) VALUES (?, ?, 0)");
+                    $stmt->execute([$_SESSION['user_id'], $candidate_id]);
+                }
             }
         }
 

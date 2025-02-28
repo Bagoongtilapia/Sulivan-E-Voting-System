@@ -8,6 +8,10 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['Super Ad
     exit();
 }
 
+// Get current election status
+$stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
+$electionStatus = $stmt->fetchColumn();
+
 // Get all voters (students)
 $stmt = $pdo->query("
     SELECT u.*, 
@@ -93,26 +97,40 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             <!-- Main Content -->
             <div class="col-md-10 main-content">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Manage Voters</h2>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVoterModal">
-                        <i class='bx bx-plus'></i> Add New Voter
-                    </button>
-                </div>
-
+                <?php if (isset($_GET['error'])): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class='bx bx-error-circle me-2'></i>
+                        <?php echo htmlspecialchars($_GET['error']); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
+                
                 <?php if (isset($_GET['success'])): ?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class='bx bx-check-circle me-2'></i>
                         <?php echo htmlspecialchars($_GET['success']); ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
 
-                <?php if (isset($_GET['error'])): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <?php echo htmlspecialchars($_GET['error']); ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Manage Voters</h2>
+                    <div>
+                        <?php if ($electionStatus === 'Pre-Voting'): ?>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVoterModal">
+                                <i class='bx bx-plus'></i> Add New Voter
+                            </button>
+                        <?php else: ?>
+                            <div class="alert alert-info d-inline-block me-3 mb-0 py-2">
+                                <?php if ($electionStatus === 'Voting'): ?>
+                                    Voter management is disabled during the voting phase. Please wait until the pre-voting phase to add or modify voters.
+                                <?php else: ?>
+                                    Voter management is disabled after the election has ended. Please wait until the next pre-voting phase.
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
-                <?php endif; ?>
+                </div>
 
                 <!-- Voters List -->
                 <div class="card">
