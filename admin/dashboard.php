@@ -596,6 +596,12 @@ try {
                         <span>Manage Admins</span>
                     </a>
                     <?php endif; ?>
+                    <?php if ($_SESSION['user_role'] === 'Sub-Admin'): ?>
+                    <a href="manage_voters.php" class="nav-link">
+                        <i class='bx bxs-group'></i>
+                        <span>Manage Voters</span>
+                    </a>
+                    <?php endif; ?>
                     <a href="election_results.php" class="nav-link">
                         <i class='bx bxs-bar-chart-alt-2'></i>
                         <span>Election Results</span>

@@ -117,89 +117,229 @@ switch($electionStatus) {
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
+        :root {
+            --primary-color: #393CB2;
+            --primary-light: #5558CD;
+            --primary-dark: #2A2D8F;
+            --accent-color: #E8E9FF;
+            --gradient-primary: linear-gradient(135deg, #393CB2, #5558CD);
+            --light-bg: #F8F9FF;
+        }
+
+        body {
+            background: var(--light-bg);
+            min-height: 100vh;
+        }
+
         .sidebar {
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
-            padding: 20px;
-            background-color: #343a40;
+            width: 260px;
+            background: var(--primary-color);
             color: white;
+            box-shadow: 4px 0 10px rgba(57, 60, 178, 0.1);
+            z-index: 1000;
         }
+
         .main-content {
-            margin-left: 250px;
-            padding: 20px;
+            margin-left: 260px;
+            padding: 2rem;
+            background: var(--light-bg);
         }
-        .nav-link {
-            color: white;
-            margin-bottom: 10px;
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            background: var(--primary-color);
         }
-        .nav-link:hover {
-            color: #17a2b8;
-        }
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .card-header {
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #eee;
-            padding: 15px 20px;
-        }
-        .card-body {
-            padding: 20px;
-        }
-        .candidate-card {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-        }
-        .candidate-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .candidate-image {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
+
+        .sidebar-brand img {
+            width: 50px;
+            height: 50px;
             object-fit: cover;
-            border: 3px solid #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 100px;
+            margin-right: 12px;
         }
-        .candidate-info {
-            margin-left: 15px;
-        }
-        .progress {
-            height: 20px;
-            margin-top: 10px;
-            background-color: #e9ecef;
-            border-radius: 10px;
-        }
-        .progress-bar {
-            background-color: #17a2b8;
-            border-radius: 10px;
-            transition: width 0.5s ease-in-out;
-        }
-        .stats-card {
-            background: linear-gradient(145deg, #fff, #f8f9fa);
-            border-radius: 15px;
-            padding: 20px;
-            height: 100%;
-        }
-        .stats-card .card-title {
-            color: #6c757d;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .stats-card .display-6 {
-            color: #343a40;
+
+        .sidebar-brand h3 {
+            margin: 0;
+            font-size: 1.5rem;
             font-weight: 600;
+            color: white;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.75rem 1.5rem;
+            margin: 0.25rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            font-weight: 600;
+        }
+
+        .nav-link.active i {
+            color: var(--primary-color);
+        }
+
+        .nav-link i {
+            margin-right: 12px;
+            font-size: 1.25rem;
+            width: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link span {
+            font-size: 0.95rem;
+        }
+
+        .nav-link:not(.active):hover i {
+            transform: scale(1.1);
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+
+        .stats-card h4 {
+            color: var(--primary-dark);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stats-card .display-4 {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .results-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .position-card {
+            background: var(--light-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .position-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+
+        .position-title {
+            color: var(--primary-color);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .candidate-row {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .candidate-row:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .candidate-info {
+            flex: 1;
+            margin-right: 1rem;
+        }
+
+        .candidate-name {
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .vote-count {
+            color: var(--primary-light);
+            font-size: 0.9rem;
+        }
+
+        .progress {
+            height: 8px;
+            margin-top: 0.5rem;
+            background: var(--accent-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: var(--gradient-primary);
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .export-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .export-btn i {
+            font-size: 1.25rem;
         }
     </style>
 </head>
@@ -207,46 +347,63 @@ switch($electionStatus) {
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-2 sidebar">
-                <h3 class="mb-4">E-VOTE!</h3>
+            <div class="col-auto sidebar">
+                <div class="sidebar-brand">
+                    <img src="../image/Untitled.jpg" alt="E-VOTE! Logo">
+                    <h3>E-VOTE!</h3>
+                </div>
                 <div class="nav flex-column">
                     <a href="dashboard.php" class="nav-link">
-                        <i class='bx bxs-dashboard'></i> Dashboard
-                    </a>
-                    <a href="manage_candidates.php" class="nav-link">
-                        <i class='bx bxs-user-detail'></i> Manage Candidates
-                    </a>
-                    <a href="manage_positions.php" class="nav-link">
-                        <i class='bx bxs-badge'></i> Manage Positions
-                    </a>
-                    <a href="manage_voters.php" class="nav-link">
-                        <i class='bx bxs-user-account'></i> Manage Voters
+                        <i class='bx bxs-dashboard'></i>
+                        <span>Dashboard</span>
                     </a>
                     <?php if ($_SESSION['user_role'] === 'Super Admin'): ?>
+                    <a href="manage_candidates.php" class="nav-link">
+                        <i class='bx bxs-user-detail'></i>
+                        <span>Manage Candidates</span>
+                    </a>
+                    <a href="manage_positions.php" class="nav-link">
+                        <i class='bx bxs-badge'></i>
+                        <span>Manage Positions</span>
+                    </a>
+                    <a href="manage_voters.php" class="nav-link">
+                        <i class='bx bxs-group'></i>
+                        <span>Manage Voters</span>
+                    </a>
                     <a href="manage_admins.php" class="nav-link">
-                        <i class='bx bxs-user-check'></i> Manage Sub-Admins
+                        <i class='bx bxs-user-account'></i>
+                        <span>Manage Admins</span>
+                    </a>
+                    <?php endif; ?>
+                    <?php if ($_SESSION['user_role'] === 'Sub-Admin'): ?>
+                    <a href="manage_voters.php" class="nav-link">
+                        <i class='bx bxs-group'></i>
+                        <span>Manage Voters</span>
                     </a>
                     <?php endif; ?>
                     <a href="election_results.php" class="nav-link active">
-                        <i class='bx bxs-bar-chart-alt-2'></i> Election Results
+                        <i class='bx bxs-bar-chart-alt-2'></i>
+                        <span>Election Results</span>
                     </a>
-                    <a href="../auth/logout.php" class="nav-link text-danger mt-5">
-                        <i class='bx bxs-log-out'></i> Logout
+                    <a href="../auth/logout.php" class="nav-link">
+                        <i class='bx bxs-log-out'></i>
+                        <span>Logout</span>
                     </a>
                 </div>
             </div>
 
             <!-- Main Content -->
-            <div class="col-md-10 main-content">
+            <div class="col main-content">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2>Election Results</h2>
-                    <div class="d-flex gap-2 align-items-center">
-                        <span class="badge bg-<?php echo $electionStatus === 'Ended' ? 'success' : 'warning'; ?> fs-5 me-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge bg-<?php echo $electionStatus === 'Ended' ? 'success' : 'warning'; ?> fs-5">
                             Status: <?php echo htmlspecialchars($electionStatus); ?>
                         </span>
                         <?php if (!empty($positions)): ?>
-                        <button class="btn btn-primary" onclick="generatePDF()">
-                            <i class='bx bxs-file-pdf me-1'></i> Export to PDF
+                        <button class="export-btn" onclick="generatePDF()">
+                            <i class='bx bxs-file-pdf'></i>
+                            Export Results
                         </button>
                         <?php endif; ?>
                     </div>
@@ -257,7 +414,7 @@ switch($electionStatus) {
                 <?php endif; ?>
 
                 <!-- Results Section -->
-                <div id="election-results-content">
+                <div class="results-section">
                     <?php if (empty($positions)): ?>
                         <div class="alert alert-info">
                             <h4 class="alert-heading">No Results Available</h4>
@@ -277,22 +434,22 @@ switch($electionStatus) {
                         <div class="row mb-4">
                             <div class="col-md-4">
                                 <div class="stats-card">
-                                    <h5 class="card-title">Total Eligible Voters</h5>
-                                    <p class="card-text display-6"><?php echo $totalVoters; ?></p>
+                                    <h4>Total Voters</h4>
+                                    <div class="display-4"><?php echo $totalVoters; ?></div>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="stats-card">
-                                    <h5 class="card-title">Total Votes Cast</h5>
-                                    <p class="card-text display-6"><?php echo $totalVotesCast; ?></p>
+                                    <h4>Total Votes Cast</h4>
+                                    <div class="display-4"><?php echo $totalVotesCast; ?></div>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="stats-card">
-                                    <h5 class="card-title">Voter Turnout</h5>
-                                    <p class="card-text display-6">
+                                    <h4>Voter Turnout</h4>
+                                    <div class="display-4">
                                         <?php echo $totalVoters > 0 ? round(($totalVotesCast / $totalVoters) * 100) : 0; ?>%
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -301,51 +458,33 @@ switch($electionStatus) {
                         <div class="row">
                             <?php foreach ($positions as $position): ?>
                                 <div class="col-md-6">
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h5 class="mb-0"><?php echo htmlspecialchars($position['name']); ?></h5>
-                                        </div>
-                                        <div class="card-body">
-                                            <?php if (empty($position['candidates'])): ?>
-                                                <p class="text-muted">No candidates for this position.</p>
-                                            <?php else: ?>
-                                                <?php foreach ($position['candidates'] as $candidate): ?>
-                                                    <div class="candidate-card">
-                                                        <div class="d-flex align-items-center">
-                                                            <div class="candidate-image-wrapper">
-                                                                <?php if ($candidate['image_url']): ?>
-                                                                    <img src="../<?php echo htmlspecialchars($candidate['image_url']); ?>" 
-                                                                        alt="<?php echo htmlspecialchars($candidate['name']); ?>" 
-                                                                        class="candidate-image"
-                                                                        onerror="this.onerror=null; this.src='../assets/images/default-avatar.png';">
-                                                                <?php else: ?>
-                                                                    <div class="candidate-image d-flex align-items-center justify-content-center bg-light">
-                                                                        <i class='bx bxs-user' style='font-size: 3rem; color: #6c757d;'></i>
-                                                                    </div>
-                                                                <?php endif; ?>
-                                                            </div>
-                                                            <div class="candidate-info flex-grow-1">
-                                                                <h6 class="mb-1 fw-bold"><?php echo htmlspecialchars($candidate['name']); ?></h6>
-                                                                <?php 
-                                                                $percentage = $position['total_voters'] > 0 
-                                                                    ? ($candidate['votes'] / $position['total_voters']) * 100 
-                                                                    : 0;
-                                                                ?>
-                                                                <div class="progress">
-                                                                    <div class="progress-bar" role="progressbar" 
-                                                                        style="width: <?php echo $percentage; ?>%"
-                                                                        aria-valuenow="<?php echo $percentage; ?>" 
-                                                                        aria-valuemin="0" 
-                                                                        aria-valuemax="100">
-                                                                        <?php echo $candidate['votes']; ?> votes (<?php echo round($percentage); ?>%)
-                                                                    </div>
-                                                                </div>
+                                    <div class="position-card">
+                                        <h3 class="position-title"><?php echo htmlspecialchars($position['name']); ?></h3>
+                                        <?php if (empty($position['candidates'])): ?>
+                                            <p class="text-muted">No candidates for this position.</p>
+                                        <?php else: ?>
+                                            <?php foreach ($position['candidates'] as $candidate): ?>
+                                                <div class="candidate-row">
+                                                    <div class="candidate-info">
+                                                        <div class="candidate-name">
+                                                            <?php echo htmlspecialchars($candidate['name']); ?>
+                                                        </div>
+                                                        <div class="vote-count">
+                                                            <?php echo $candidate['votes']; ?> votes
+                                                            (<?php echo $position['total_voters'] > 0 ? round(($candidate['votes'] / $position['total_voters']) * 100) : 0; ?>%)
+                                                        </div>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar" 
+                                                                 style="width: <?php echo $position['total_voters'] > 0 ? ($candidate['votes'] / $position['total_voters']) * 100 : 0; ?>%" 
+                                                                 aria-valuenow="<?php echo $position['total_voters'] > 0 ? ($candidate['votes'] / $position['total_voters']) * 100 : 0; ?>" 
+                                                                 aria-valuemin="0" 
+                                                                 aria-valuemax="100">
                                                             </div>
                                                         </div>
                                                     </div>
-                                                <?php endforeach; ?>
-                                            <?php endif; ?>
-                                        </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -360,7 +499,7 @@ switch($electionStatus) {
     <script>
         function generatePDF() {
             // Get the element
-            const element = document.getElementById('election-results-content');
+            const element = document.querySelector('.results-section');
             
             // Configuration for PDF generation
             const opt = {

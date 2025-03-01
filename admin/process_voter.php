@@ -10,8 +10,8 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['Super Ad
 
 // Handle DELETE request
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete') {
-    if ($_SESSION['user_role'] !== 'Super Admin') {
-        header('Location: manage_voters.php?error=Unauthorized action: Only Super Admin can delete voters');
+    if (!in_array($_SESSION['user_role'], ['Super Admin', 'Sub-Admin'])) {
+        header('Location: manage_voters.php?error=Unauthorized action: Only Admins can delete voters');
         exit();
     }
 

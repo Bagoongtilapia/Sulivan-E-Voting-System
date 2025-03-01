@@ -33,30 +33,105 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #393CB2;
+            --primary-light: #5558CD;
+            --primary-dark: #2A2D8F;
+            --accent-color: #E8E9FF;
+            --gradient-primary: linear-gradient(135deg, #393CB2, #5558CD);
+            --light-bg: #F8F9FF;
+        }
+
+        body {
+            background: var(--light-bg);
+            min-height: 100vh;
+        }
+
         .sidebar {
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
-            padding: 20px;
-            background-color: #343a40;
+            width: 260px;
+            background: var(--primary-color);
             color: white;
+            box-shadow: 4px 0 10px rgba(57, 60, 178, 0.1);
+            z-index: 1000;
         }
+
         .main-content {
-            margin-left: 250px;
-            padding: 20px;
+            margin-left: 260px;
+            padding: 2rem;
+            background: var(--light-bg);
         }
-        .nav-link {
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            background: var(--primary-color);
+        }
+
+        .sidebar-brand img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 100px;
+            margin-right: 12px;
+        }
+
+        .sidebar-brand h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
             color: white;
-            margin-bottom: 10px;
         }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.75rem 1.5rem;
+            margin: 0.25rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
         .nav-link:hover {
-            color: #17a2b8;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
         }
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+
+        .nav-link.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            font-weight: 600;
+        }
+
+        .nav-link.active i {
+            color: var(--primary-color);
+        }
+
+        .nav-link i {
+            margin-right: 12px;
+            font-size: 1.25rem;
+            width: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link span {
+            font-size: 0.95rem;
+        }
+
+        .nav-link:not(.active):hover i {
+            transform: scale(1.1);
         }
     </style>
 </head>
@@ -65,32 +140,42 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="row">
             <!-- Sidebar -->
             <div class="col-md-2 sidebar">
-                <h3 class="mb-4">E-VOTE!</h3>
+                <div class="sidebar-brand">
+                    <img src="../image/Untitled.jpg" alt="E-VOTE! Logo">
+                    <h3>E-VOTE!</h3>
+                </div>
                 <div class="nav flex-column">
                     <a href="dashboard.php" class="nav-link">
-                        <i class='bx bxs-dashboard'></i> Dashboard
+                        <i class='bx bxs-dashboard'></i>
+                        <span>Dashboard</span>
                     </a>
                     <?php if ($_SESSION['user_role'] === 'Super Admin'): ?>
                     <a href="manage_candidates.php" class="nav-link">
-                        <i class='bx bxs-user-detail'></i> Manage Candidates
+                        <i class='bx bxs-user-detail'></i>
+                        <span>Manage Candidates</span>
                     </a>
                     <a href="manage_positions.php" class="nav-link">
-                        <i class='bx bxs-badge'></i> Manage Positions
+                        <i class='bx bxs-badge'></i>
+                        <span>Manage Positions</span>
                     </a>
                     <?php endif; ?>
                     <a href="manage_voters.php" class="nav-link active">
-                        <i class='bx bxs-user-account'></i> Manage Voters
+                        <i class='bx bxs-group'></i>
+                        <span>Manage Voters</span>
                     </a>
                     <?php if ($_SESSION['user_role'] === 'Super Admin'): ?>
                     <a href="manage_admins.php" class="nav-link">
-                        <i class='bx bxs-user-check'></i> Manage Sub-Admins
+                        <i class='bx bxs-user-account'></i>
+                        <span>Manage Admins</span>
                     </a>
                     <?php endif; ?>
                     <a href="election_results.php" class="nav-link">
-                        <i class='bx bxs-bar-chart-alt-2'></i> Election Results
+                        <i class='bx bxs-bar-chart-alt-2'></i>
+                        <span>Election Results</span>
                     </a>
-                    <a href="../auth/logout.php" class="nav-link text-danger mt-5">
-                        <i class='bx bxs-log-out'></i> Logout
+                    <a href="../auth/logout.php" class="nav-link">
+                        <i class='bx bxs-log-out'></i>
+                        <span>Logout</span>
                     </a>
                 </div>
             </div>
@@ -162,11 +247,9 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <button class="btn btn-sm btn-info" onclick="editVoter(<?php echo $voter['id']; ?>, '<?php echo htmlspecialchars($voter['name']); ?>', '<?php echo htmlspecialchars($voter['email']); ?>')">
                                                 <i class='bx bx-edit'></i>
                                             </button>
-                                            <?php if ($_SESSION['user_role'] === 'Super Admin'): ?>
-                                                <button class="btn btn-sm btn-danger" onclick="deleteVoter(<?php echo $voter['id']; ?>)">
-                                                    <i class='bx bx-trash'></i>
-                                                </button>
-                                            <?php endif; ?>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteVoter(<?php echo $voter['id']; ?>)">
+                                                <i class='bx bx-trash'></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
