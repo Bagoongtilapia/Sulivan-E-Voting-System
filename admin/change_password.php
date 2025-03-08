@@ -2,8 +2,8 @@
 session_start();
 require_once '../config/database.php';
 
-// Check if user is logged in and is a student
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Student') {
+// Check if user is logged in and is a Sub-Admin
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Sub-Admin') {
     header('Location: ../index.php');
     exit();
 }
@@ -202,96 +202,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="change-password-container">
             <div class="header">
                 <h2>Change Password</h2>
-                <p>Please change your password before proceeding.</p>
+                <p>Please change your password before continuing</p>
             </div>
-            
             <?php if ($error): ?>
                 <div class="alert alert-danger" role="alert">
-                    <i class="fas fa-exclamation-circle"></i><?php echo $error; ?>
+                    <i class="fas fa-exclamation-circle"></i>
+                    <?php echo htmlspecialchars($error); ?>
                 </div>
             <?php endif; ?>
-            
             <?php if ($success): ?>
                 <div class="alert alert-success" role="alert">
-                    <i class="fas fa-check-circle"></i><?php echo $success; ?>
+                    <i class="fas fa-check-circle"></i>
+                    <?php echo htmlspecialchars($success); ?>
                 </div>
             <?php endif; ?>
-
-            <form method="POST" class="needs-validation" novalidate>
+            <form method="POST" action="">
                 <div class="mb-4">
                     <label for="current_password" class="form-label">Current Password</label>
-                    <div class="input-group">
-                        <input type="password" class="form-control" id="current_password" name="current_password" required 
-                               aria-label="Current password">
-                    </div>
+                    <input type="password" class="form-control" id="current_password" name="current_password" required>
                 </div>
-                
                 <div class="mb-4">
-                <div class="form-text">Password must be at least 8 characters long</div>
                     <label for="new_password" class="form-label">New Password</label>
-                    <div class="input-group">
-                        <input type="password" class="form-control" id="new_password" name="new_password" required
-                               aria-label="New password">
-                    </div>
+                    <input type="password" class="form-control" id="new_password" name="new_password" required>
+                    <div class="form-text">Password must be at least 8 characters long</div>
                 </div>
-                
                 <div class="mb-4">
                     <label for="confirm_password" class="form-label">Confirm New Password</label>
-                    <div class="input-group">
-                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required
-                               aria-label="Confirm new password">
-                    </div>
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
                 </div>
-                
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-key me-2"></i>Change Password
-                </button>
+                <button type="submit" class="btn btn-primary">Change Password</button>
             </form>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Enhanced form validation
-        (function () {
-            'use strict'
-            const forms = document.querySelectorAll('.needs-validation')
-            
-            Array.from(forms).forEach(form => {
-                form.addEventListener('submit', event => {
-                    if (!form.checkValidity()) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-                    
-                    // Check password requirements
-                    const newPassword = document.getElementById('new_password');
-                    const confirmPassword = document.getElementById('confirm_password');
-                    
-                    if (newPassword.value.length < 8) {
-                        newPassword.setCustomValidity('Password must be at least 8 characters long');
-                    } else {
-                        newPassword.setCustomValidity('');
-                    }
-                    
-                    if (newPassword.value !== confirmPassword.value) {
-                        confirmPassword.setCustomValidity('Passwords do not match');
-                    } else {
-                        confirmPassword.setCustomValidity('');
-                    }
-                    
-                    form.classList.add('was-validated');
-                }, false);
-                
-                // Clear custom validity on input
-                const passwordInputs = form.querySelectorAll('input[type="password"]');
-                passwordInputs.forEach(input => {
-                    input.addEventListener('input', () => {
-                        input.setCustomValidity('');
-                    });
-                });
-            });
-        })();
-    </script>
 </body>
 </html>

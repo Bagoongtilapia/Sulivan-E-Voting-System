@@ -29,11 +29,15 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
             --accent-color: #E8E9FF;
             --gradient-primary: linear-gradient(135deg, #393CB2, #5558CD);
             --light-bg: #F8F9FF;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
         }
 
         body {
             background: var(--light-bg);
             min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
         }
 
         .sidebar {
@@ -93,14 +97,12 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .nav-link:hover {
             color: white;
             background: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
         }
 
         .nav-link.active {
             background: white;
             color: var(--primary-color);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            font-weight: 600;
         }
 
         .nav-link.active i {
@@ -119,34 +121,209 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
             font-size: 0.95rem;
         }
 
-        .nav-link:not(.active):hover i {
-            transform: scale(1.1);
+        /* Main Content Styles */
+        .page-header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
         }
 
-        .card {
+        .page-header h2 {
+            color: black;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .section-header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(57, 60, 178, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
             border: none;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(57, 60, 178, 0.2);
         }
 
         .position-card {
-            transition: transform 0.2s;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: none;
+            overflow: hidden;
         }
 
         .position-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(57, 60, 178, 0.1);
         }
 
-        .btn-info {
-            background-color: #17a2b8;
-            border-color: #17a2b8;
+        .position-card .card-header {
+            background: white;
+            border-bottom: none;
+            padding: 1.25rem;
+        }
+
+        .position-card .card-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .position-card .card-body {
+            padding: 1.25rem;
+        }
+
+        .max-votes {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(57, 60, 178, 0.2);
+        }
+
+        .max-votes i {
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+            vertical-align: middle;
+        }
+
+        .btn-group .btn {
+            border-radius: 8px;
+            margin: 0 0.25rem;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+        }
+
+        .btn-edit {
+            background-color: var(--accent-color);
+            color: #000;
+            border: none;
+        }
+
+        .btn-edit:hover {
+            background-color: var(--primary-color);
             color: white;
         }
 
-        .btn-info:hover {
-            background-color: #138496;
-            border-color: #117a8b;
+        .btn-delete {
+            background-color: #ffe5e5;
+            color: #dc3545;
+            border: none;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
             color: white;
+        }
+
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+        }
+
+        .modal-header {
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            border: none;
+        }
+
+        .modal-title {
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-label {
+            color: var(--primary-dark);
+            font-weight: 500;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 0.625rem 1rem;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 0.2rem rgba(85, 88, 205, 0.25);
+        }
+
+        .modal-footer {
+            border-top: none;
+            padding: 1rem 1.5rem 1.5rem;
+        }
+
+        .alert {
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            border: none;
+        }
+
+        .alert-success {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success-color);
+        }
+
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger-color);
+        }
+
+        .add-position-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .add-position-btn:hover {
+            background: var(--primary-light);
+            color: white;
+            text-decoration: none;
+        }
+
+        .add-position-btn i {
+            font-size: 16px;
+        }
+
+        .manage-positions-header {
+            color: var(--primary-color);
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+            font-size: 24px;
+            margin: 0;
         }
     </style>
 </head>
@@ -182,6 +359,12 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <span>Manage Admins</span>
                     </a>
                     <?php endif; ?>
+                    <?php if ($_SESSION['user_role'] === 'Sub-Admin'): ?>
+                    <a href="manage_voters.php" class="nav-link">
+                        <i class='bx bxs-group'></i>
+                        <span>Manage Voters</span>
+                    </a>
+                    <?php endif; ?>
                     <a href="election_results.php" class="nav-link">
                         <i class='bx bxs-bar-chart-alt-2'></i>
                         <span>Election Results</span>
@@ -195,46 +378,52 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             <!-- Main Content -->
             <div class="col-md-10 main-content">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Manage Positions</h2>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPositionModal">
-                        <i class='bx bx-plus'></i> Add Position
-                    </button>
+                <div class="section-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="manage-positions-header">Manage Positions</h2>
+                        <button class="add-position-btn" data-bs-toggle="modal" data-bs-target="#addPositionModal">
+                            <i class='bx bx-plus'></i>
+                            Add New Position
+                        </button>
+                    </div>
                 </div>
 
                 <?php if (isset($_GET['success'])): ?>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <?php echo htmlspecialchars($_GET['success']); ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <div class="alert alert-success" role="alert">
+                        <i class='bx bx-check-circle me-2'></i><?php echo htmlspecialchars($_GET['success']); ?>
                     </div>
                 <?php endif; ?>
 
                 <?php if (isset($_GET['error'])): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <?php echo htmlspecialchars($_GET['error']); ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <div class="alert alert-danger" role="alert">
+                        <i class='bx bx-error-circle me-2'></i><?php echo htmlspecialchars($_GET['error']); ?>
                     </div>
                 <?php endif; ?>
 
-                <!-- Positions List -->
-                <div class="row">
+                <div class="row g-4">
                     <?php foreach ($positions as $position): ?>
-                        <div class="col-md-4 mb-4">
-                            <div class="card position-card">
-                                <div class="card-body">
+                        <div class="col-md-6 col-lg-4">
+                            <div class="position-card card h-100">
+                                <div class="card-header">
                                     <h5 class="card-title"><?php echo htmlspecialchars($position['position_name']); ?></h5>
-                                    <p class="text-muted">Max Votes: <?php echo $position['max_votes']; ?></p>
-                                    <div class="mt-3">
-                                        <button class="btn btn-sm btn-info edit-position" 
-                                                data-id="<?php echo $position['id']; ?>"
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <div class="max-votes">
+                                            <i class='bx bx-check-circle'></i>
+                                            Max Votes: <?php echo htmlspecialchars($position['max_votes']); ?>
+                                        </div>
+                                    </div>
+                                    <div class="btn-group w-100">
+                                        <button class="btn btn-edit edit-position" data-id="<?php echo $position['id']; ?>" 
                                                 data-name="<?php echo htmlspecialchars($position['position_name']); ?>"
-                                                data-max-votes="<?php echo $position['max_votes']; ?>">
-                                            <i class='bx bx-edit'></i> Edit
+                                                data-max-votes="<?php echo htmlspecialchars($position['max_votes']); ?>"
+                                                data-bs-toggle="modal" data-bs-target="#editPositionModal">
+                                            <i class='bx bx-edit me-1'></i>Edit
                                         </button>
-                                        <button class="btn btn-sm btn-danger delete-position"
-                                                data-id="<?php echo $position['id']; ?>"
-                                                data-name="<?php echo htmlspecialchars($position['position_name']); ?>">
-                                            <i class='bx bx-trash'></i> Delete
+                                        <button class="btn btn-delete delete-position" data-id="<?php echo $position['id']; ?>"
+                                                data-bs-toggle="modal" data-bs-target="#deletePositionModal">
+                                            <i class='bx bx-trash me-1'></i>Delete
                                         </button>
                                     </div>
                                 </div>

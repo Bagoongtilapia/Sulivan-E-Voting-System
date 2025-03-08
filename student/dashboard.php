@@ -6,9 +6,69 @@ require_once '../config/database.php';
 
 // Check if user is logged in and is a student
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Student') {
-    error_log("User not logged in or not a student. Session: " . print_r($_SESSION, true));
     header('Location: ../index.php');
     exit();
+}
+
+// Process vote submission
+if(isset($_POST['vote'])) {
+    $votes = $_POST['vote'];
+    
+    // Begin transaction
+    $pdo->beginTransaction();
+    
+    try {
+        // Insert each vote
+        foreach($votes as $position_id => $candidate_ids) {
+            foreach($candidate_ids as $candidate_id) {
+                $sql = "INSERT INTO votes (user_id, candidate_id, position_id) VALUES (?, ?, ?)";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$_SESSION['user_id'], $candidate_id, $position_id]);
+            }
+        }
+        
+        // Update voters status
+        $sql = "UPDATE users SET voted = 1 WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$_SESSION['user_id']]);
+        
+        // Commit transaction
+        $pdo->commit();
+        
+        // Store success message in session and redirect
+        $_SESSION['message'] = array('type' => 'success', 'text' => 'Your vote has been recorded successfully!');
+        header('Location: dashboard.php');
+        exit();
+        
+    } catch (PDOException $e) {
+        // Rollback on error
+        $pdo->rollBack();
+        $_SESSION['message'] = array('type' => 'error', 'text' => 'Error recording vote: ' . $e->getMessage());
+        header('Location: dashboard.php');
+        exit();
+    }
+}
+
+// Display message if exists
+if(isset($_SESSION['message'])) {
+    $messageClass = ($_SESSION['message']['type'] === 'success') ? 'alert-success' : 'alert-danger';
+    echo '<div class="alert ' . $messageClass . '">' . htmlspecialchars($_SESSION['message']['text']) . '</div>';
+    unset($_SESSION['message']);
+}
+
+// Display vote message if exists
+if(isset($_SESSION['vote_message'])) {
+    echo '<div class="alert alert-info">' . htmlspecialchars($_SESSION['vote_message']) . '</div>';
+    unset($_SESSION['vote_message']);
+}
+
+// Display status messages
+if(isset($_GET['status'])) {
+    if($_GET['status'] === 'success') {
+        echo '<div class="alert alert-success">Your vote has been recorded successfully!</div>';
+    } else if($_GET['status'] === 'error') {
+        echo '<div class="alert alert-danger">An error occurred while recording your vote. Please try again.</div>';
+    }
 }
 
 // Check if password needs to be changed
@@ -17,12 +77,28 @@ $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch();
 
 // Check election status
-$stmt = $pdo->prepare("SELECT status FROM election_status WHERE id = 1");
-$stmt->execute();
-$election = $stmt->fetch();
+try {
+    $stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
+    $electionStatus = $stmt->fetch(PDO::FETCH_COLUMN) ?? 'Pre-Voting';
+} catch (PDOException $e) {
+    error_log("Error fetching election status: " . $e->getMessage());
+    $error = "Error fetching election status";
+    $electionStatus = 'Unknown';
+}
+
+// Check if user has already voted
+try {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM votes WHERE user_id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $hasVoted = $stmt->fetchColumn() > 0;
+} catch (PDOException $e) {
+    error_log("Error checking vote status: " . $e->getMessage());
+    $error = "Error checking vote status";
+    $hasVoted = false;
+}
 
 // If password hasn't been changed and it's pre-voting period, redirect to change password
-if (!$user['password_changed'] && $election['status'] === 'Pre-Voting') {
+if (!$user['password_changed'] && $electionStatus === 'Pre-Voting') {
     header('Location: change_password.php');
     exit();
 }
@@ -30,20 +106,9 @@ if (!$user['password_changed'] && $election['status'] === 'Pre-Voting') {
 // Debug information
 error_log("Session data: " . print_r($_SESSION, true));
 
-// Get election status
-try {
-    $stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
-    $electionStatus = $stmt->fetch(PDO::FETCH_COLUMN) ?? 'Pre-Voting';
-    error_log("Election status: " . $electionStatus);
-} catch (PDOException $e) {
-    error_log("Error fetching election status: " . $e->getMessage());
-    $error = "Error fetching election status";
-    $electionStatus = 'Unknown';
-}
-
 // Get student's voting status
 try {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM votes WHERE student_id = ?");
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM votes WHERE user_id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $hasVoted = $stmt->fetchColumn() > 0;
     error_log("Has voted status for student {$_SESSION['user_id']}: " . ($hasVoted ? 'Yes' : 'No'));
@@ -102,44 +167,6 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
     }
 }
 
-// Check if form is submitted
-if(isset($_POST['vote'])) {
-    $votes = $_POST['vote'];
-    
-    // Begin transaction
-    $pdo->beginTransaction();
-    
-    try {
-        // Insert each vote
-        foreach($votes as $position_id => $candidate_ids) {
-            foreach($candidate_ids as $candidate_id) {
-                $sql = "INSERT INTO votes (student_id, candidate_id, position_id) VALUES (?, ?, ?)";
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute([$student, $candidate_id, $position_id]);
-            }
-        }
-        
-        // Update voters status
-        $sql = "UPDATE users SET voted = 1 WHERE id = ?";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$_SESSION['user_id']]);
-        
-        // Commit transaction
-        $pdo->commit();
-        
-        // Unset session and redirect
-        unset($_SESSION['user_id']);
-        header('location: ../index.php');
-        exit();
-        
-    } catch (PDOException $e) {
-        // Rollback on error
-        $pdo->rollBack();
-        $_SESSION['error'] = $e->getMessage();
-        header('location: dashboard.php');
-        exit();
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -412,6 +439,7 @@ if(isset($_POST['vote'])) {
         }
 
         .candidate-image {
+            border-radius: 50%;
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -432,13 +460,6 @@ if(isset($_POST['vote'])) {
             padding: 1.25rem;
         }
 
-        .modal-header .close {
-            color: white;
-            opacity: 0.8;
-            text-shadow: none;
-            margin: -1rem -1rem -1rem auto;
-        }
-
         .modal-title {
             font-size: 1.25rem;
             font-weight: 600;
@@ -448,7 +469,6 @@ if(isset($_POST['vote'])) {
 
         .modal-body {
             padding: 1.5rem;
-            background-color: white;
         }
 
         .modal-footer {
@@ -667,7 +687,7 @@ if(isset($_POST['vote'])) {
             font-size: 1.5rem;
         }
 
-        .preview-modal .btn-close-white {
+        .preview-modal .btn-close-white {   
             opacity: 0.8;
             transition: all 0.2s ease;
         }
@@ -863,6 +883,45 @@ if(isset($_POST['vote'])) {
             color: #6c757d;
             font-style: italic;
         }
+        
+        .platform-modal-content .candidate-profile {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .candidate-name-lg {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            text-transform: capitalize;
+        }
+        
+        .modal-content {
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .modal-header {
+            padding: 1.5rem 1.5rem 0;
+        }
+        
+        .btn-close {
+            opacity: 0.8;
+            transition: all 0.3s ease;
+            background-color: transparent;
+        }
+
+        /* Animation for modal */
+        .modal.fade .modal-dialog {
+            transform: scale(0.95);
+            transition: transform 0.3s ease-out;
+        }
+
+        .modal.show .modal-dialog {
+            transform: scale(1);
+        }
     </style>
 </head>
 <body>
@@ -920,21 +979,20 @@ if(isset($_POST['vote'])) {
                         <h2 class="text-center mb-4">Election Results</h2>
                         <?php
                         try {
-                            // Get positions with winners and vote counts
+                            // Get positions with candidates and vote counts
                             $sql = "SELECT 
                                 p.id, 
-                                p.position_name, 
+                                p.position_name,
                                 p.max_votes,
-                                c.id as candidate_id, 
-                                c.name as candidate_name, 
-                                c.image_path, 
+                                c.id as candidate_id,
+                                c.name as candidate_name,
+                                c.image_path,
                                 c.platform,
-                                (SELECT COUNT(*) 
-                                 FROM votes v 
+                                (SELECT COUNT(*) FROM votes v 
                                  WHERE v.candidate_id = c.id) as vote_count
                             FROM positions p
                             LEFT JOIN candidates c ON p.id = c.position_id
-                            ORDER BY p.position_name, vote_count DESC";
+                            ORDER BY p.id, vote_count DESC";
                             
                             $stmt = $pdo->prepare($sql);
                             $stmt->execute();
@@ -953,9 +1011,9 @@ if(isset($_POST['vote'])) {
                                 // Add all candidates with their vote counts
                                 if ($row['candidate_id']) {
                                     $results[$row['id']]['candidates'][] = [
-                                        'name' => $row['candidate_name'],
+                                        'name' => htmlspecialchars($row['candidate_name']),
                                         'image_path' => $row['image_path'] ? '../' . $row['image_path'] : '../uploads/candidates/default.png',
-                                        'platform' => $row['platform'],
+                                        'platform' => htmlspecialchars($row['platform']),
                                         'votes' => (int)$row['vote_count']
                                     ];
                                 }
@@ -992,13 +1050,6 @@ if(isset($_POST['vote'])) {
                                                     <i class="fas fa-vote-yea"></i>
                                                     <?php echo $candidate['votes']; ?> vote<?php echo $candidate['votes'] != 1 ? 's' : ''; ?>
                                                 </p>
-                                                <button type="button" 
-                                                        class="btn btn-sm btn-outline-primary view-platform" 
-                                                        data-name="<?php echo htmlspecialchars($candidate['name']); ?>"
-                                                        data-platform="<?php echo htmlspecialchars($candidate['platform']); ?>"
-                                                        onclick="viewPlatform(this)">
-                                                    <i class="fas fa-book"></i> View Platform
-                                                </button>
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
@@ -1006,6 +1057,7 @@ if(isset($_POST['vote'])) {
                             <?php endforeach;
                             
                         } catch(PDOException $e) {
+                            error_log("Error fetching election results: " . $e->getMessage());
                             echo '<div class="alert alert-danger">Error fetching election results: ' . htmlspecialchars($e->getMessage()) . '</div>';
                         }
                         ?>
@@ -1016,7 +1068,7 @@ if(isset($_POST['vote'])) {
                         Thank you for voting! Your vote has been recorded.
                     </div>
                 <?php elseif ($electionStatus === 'Voting'): ?>
-                    <form action="cast_vote.php" method="POST" id="votingForm">
+                    <form action="cast_vote.php" method="POST" id="votingForm" onsubmit="return false;">
                         <?php foreach ($positions as $position): ?>
                             <div class="voting-section">
                                 <h3 class="position-title"><?php echo htmlspecialchars($position['name']); ?></h3>
@@ -1042,6 +1094,7 @@ if(isset($_POST['vote'])) {
                                                         <button type="button" class="btn btn-platform" 
                                                                 data-name="<?php echo htmlspecialchars($candidate['name']); ?>"
                                                                 data-platform="<?php echo htmlspecialchars($candidate['platform']); ?>"
+                                                                data-position="<?php echo htmlspecialchars($position['name']); ?>"
                                                                 onclick="viewPlatform(this)">
                                                             <i class='fas fa-book'></i>
                                                             Platform
@@ -1074,26 +1127,30 @@ if(isset($_POST['vote'])) {
     <div class="modal fade" id="platformModal" tabindex="-1" role="dialog" aria-labelledby="platformModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="platformModalLabel">
-                        <i class="bx bx-book-open mr-2"></i>
-                        <span class="candidate-name"></span>
-                    </h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="candidate-platform-header">
-                        Platform and Goals
+                <div class="modal-header platform-header-bg">
+                    <div class="modal-title-container">
+                        <h4 class="modal-title" id="platformModalLabel">
+                            <span id="modalPositionName" class="position-title"></span>
+                        </h4>
                     </div>
-                    <div class="platform-content" id="platformContent">
-                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                        <i class="fas fa-times mr-2"></i> Close
-                    </button>
+                <div class="modal-body p-0">
+                    <div class="platform-modal-content">
+                        <div class="candidate-profile">
+                            <h3 id="modalCandidateName" class="candidate-name-lg"></h3>
+                        </div>
+                        <div class="platform-content">
+                            <div class="platform-section">
+                                <h4 class="platform-section-title">
+                                    <i class='bx bx-target-lock me-2'></i>Platform & Vision
+                                </h4>
+                                <div class="platform-text-wrapper">
+                                    <p id="modalPlatform" class="platform-text"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1144,10 +1201,12 @@ if(isset($_POST['vote'])) {
             // Get data from button attributes
             const name = button.getAttribute('data-name');
             const platform = button.getAttribute('data-platform');
+            const position = button.getAttribute('data-position');
             
             // Update modal content
-            document.querySelector('.modal-title .candidate-name').textContent = name;
-            document.getElementById('platformContent').textContent = platform || 'No platform information available.';
+            document.getElementById('modalCandidateName').textContent = name;
+            document.getElementById('modalPositionName').textContent = position;
+            document.getElementById('modalPlatform').textContent = platform || 'No platform information available.';
             
             // Show the modal
             platformModal.show();

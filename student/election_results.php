@@ -30,22 +30,24 @@ if ($electionStatus === 'Ended') {
                     c.name as candidate_name,
                     c.image_url,
                     COUNT(v.id) as vote_count,
-                    ROW_NUMBER() OVER (PARTITION BY p.id ORDER BY COUNT(v.id) DESC) as rank
+                    ROW_NUMBER() OVER (PARTITION BY p.id ORDER BY COUNT(v.id) DESC, c.id ASC) as rank
                 FROM positions p
                 LEFT JOIN candidates c ON p.id = c.position_id
                 LEFT JOIN votes v ON c.id = v.candidate_id
                 GROUP BY p.id, p.position_name, c.id, c.name, c.image_url
+                ORDER BY p.id
             )
             SELECT 
-                position_id,
-                position_name,
-                candidate_name,
-                image_url,
-                vote_count,
+                v.position_id,
+                v.position_name,
+                v.candidate_name,
+                v.image_url,
+                v.vote_count,
+                v.rank,
                 (SELECT COUNT(*) FROM users WHERE role = 'Student') as total_voters
-            FROM VoteCounts
-            WHERE rank = 1
-            ORDER BY position_name
+            FROM VoteCounts v
+            WHERE v.rank = 1
+            ORDER BY v.position_id
         ");
         $winners = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
@@ -126,6 +128,8 @@ if ($electionStatus === 'Ended') {
             letter-spacing: 1px;
             text-transform: uppercase;
             font-size: 0.9rem;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
         }
 
         .winner-content {
@@ -274,6 +278,17 @@ if ($electionStatus === 'Ended') {
                 transform: translateY(0);
             }
         }
+
+        .position-title {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -316,20 +331,34 @@ if ($electionStatus === 'Ended') {
                 </div>
 
                 <div class="row">
-                    <?php foreach ($winners as $winner): ?>
+                    <?php 
+                    $currentPosition = null;
+                    $loop = 0;
+                    foreach ($winners as $candidate): 
+                        if ($currentPosition !== $candidate['position_id']) {
+                            if ($currentPosition !== null) {
+                                echo '</div>'; // Close previous position row
+                            }
+                            $currentPosition = $candidate['position_id'];
+                            echo '<div class="col-12"><h3 class="position-title mt-4">' . htmlspecialchars($candidate['position_name']) . '</h3></div>';
+                            echo '<div class="row">'; // Start new position row
+                        }
+                    ?>
                         <div class="col-md-6 animate-winner" style="animation-delay: <?php echo $loop * 0.2; ?>s">
                             <div class="winner-card">
+                                <?php if ($candidate['rank'] === 1): ?>
                                 <div class="winner-banner">
                                     <i class='bx bxs-crown me-2'></i>Winner
                                 </div>
                                 <div class="winner-badge">
                                     <i class='bx bxs-star'></i>
                                 </div>
+                                <?php endif; ?>
                                 <div class="winner-content">
                                     <div class="candidate-image">
-                                        <?php if ($winner['image_url']): ?>
-                                            <img src="<?php echo htmlspecialchars($winner['image_url']); ?>" 
-                                                 alt="<?php echo htmlspecialchars($winner['candidate_name']); ?>" 
+                                        <?php if ($candidate['image_url']): ?>
+                                            <img src="<?php echo htmlspecialchars($candidate['image_url']); ?>" 
+                                                 alt="<?php echo htmlspecialchars($candidate['candidate_name']); ?>" 
                                                  class="candidate-img">
                                         <?php else: ?>
                                             <div class="candidate-placeholder">
@@ -338,20 +367,20 @@ if ($electionStatus === 'Ended') {
                                         <?php endif; ?>
                                     </div>
                                     <h3 class="candidate-name">
-                                        <?php echo htmlspecialchars($winner['candidate_name']); ?>
+                                        <?php echo htmlspecialchars($candidate['candidate_name']); ?>
                                     </h3>
                                     <div class="position-name">
                                         <i class='bx bxs-badge-check me-1'></i>
-                                        <?php echo htmlspecialchars($winner['position_name']); ?>
+                                        <?php echo htmlspecialchars($candidate['position_name']); ?>
                                     </div>
                                     <div class="vote-stats">
                                         <div class="vote-count">
-                                            <?php echo number_format($winner['vote_count']); ?>
+                                            <?php echo number_format($candidate['vote_count']); ?>
                                         </div>
                                         <div class="vote-percentage">
                                             <?php 
-                                                $percentage = $winner['total_voters'] > 0 
-                                                    ? round(($winner['vote_count'] / $winner['total_voters']) * 100, 1)
+                                                $percentage = $candidate['total_voters'] > 0 
+                                                    ? round(($candidate['vote_count'] / $candidate['total_voters']) * 100, 1)
                                                     : 0;
                                                 echo $percentage . '% of total votes';
                                             ?>
@@ -368,7 +397,13 @@ if ($electionStatus === 'Ended') {
                                 </div>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                    <?php 
+                    $loop++;
+                    endforeach; 
+                    if ($currentPosition !== null) {
+                        echo '</div>'; // Close last position row
+                    }
+                    ?>
                 </div>
             <?php endif; ?>
         <?php endif; ?>

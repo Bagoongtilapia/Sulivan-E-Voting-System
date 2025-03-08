@@ -182,9 +182,11 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <!-- Main Content -->
             <div class="col-md-10 main-content">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Manage Sub-Admins</h2>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAdminModal">
-                        <i class='bx bx-plus'></i> Add New Sub-Admin
+                    <div class="d-flex align-items-center">
+                        <h2 class="mb-0" style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-size: 24px;">Manage Admins</h2>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAdminModal">
+                        <i class='bx bx-plus me-2'></i>Add New Admin
                     </button>
                 </div>
 

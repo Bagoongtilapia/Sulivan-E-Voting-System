@@ -21,8 +21,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Redirect based on role and password change status
             switch ($user['role']) {
                 case 'Super Admin':
-                case 'Sub-Admin':
                     header('Location: ../admin/dashboard.php');
+                    break;
+                case 'Sub-Admin':
+                    // If password hasn't been changed and it's pre-voting, redirect to change password
+                    if (!$user['password_changed'] && $user['election_status'] === 'Pre-Voting') {
+                        header('Location: ../admin/change_password.php');
+                    } else {
+                        header('Location: ../admin/dashboard.php');
+                    }
                     break;
                 case 'Student':
                     // If password hasn't been changed and it's pre-voting, redirect to change password

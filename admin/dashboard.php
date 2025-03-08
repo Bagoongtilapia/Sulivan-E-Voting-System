@@ -8,7 +8,11 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['Super Ad
     exit();
 }
 
-// Get election status
+// Get election status and name from session or set default
+if (!isset($_SESSION['election_name'])) {
+    $_SESSION['election_name'] = "SSLG ELECTION 2025";
+}
+
 try {
     $stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
     $electionStatus = $stmt->fetch(PDO::FETCH_COLUMN) ?? 'Pre-Voting';
@@ -34,18 +38,45 @@ try {
         ? ($stats['votes_cast'] / $stats['total_voters']) * 100 
         : 0;
 
-    // Get recent activity
+    // Get live rankings per position with percentages
     $stmt = $pdo->query("
-        SELECT DISTINCT
-            v.timestamp,
-            u.name as voter_name
-        FROM votes v
-        JOIN users u ON v.student_id = u.id
-        GROUP BY v.student_id, v.timestamp, u.name
-        ORDER BY v.timestamp DESC
-        LIMIT 10
+        WITH PositionVotes AS (
+            SELECT 
+                p.id,
+                SUM(CASE WHEN v.id IS NOT NULL THEN 1 ELSE 0 END) as total_position_votes
+            FROM positions p
+            LEFT JOIN candidates c ON p.id = c.position_id
+            LEFT JOIN votes v ON c.id = v.candidate_id
+            GROUP BY p.id
+        ),
+        CandidateRanks AS (
+            SELECT 
+                p.id as position_id,
+                c.id as candidate_id,
+                COUNT(v.id) as vote_count,
+                RANK() OVER (PARTITION BY p.id ORDER BY COUNT(v.id) DESC) as rank
+            FROM positions p
+            LEFT JOIN candidates c ON p.id = c.position_id
+            LEFT JOIN votes v ON c.id = v.candidate_id
+            GROUP BY p.id, c.id
+        )
+        SELECT 
+            p.id as position_id,
+            p.position_name,
+            c.name as candidate_name,
+            CASE 
+                WHEN pv.total_position_votes > 0 
+                THEN ROUND((cr.vote_count * 100.0 / pv.total_position_votes), 1)
+                ELSE 0 
+            END as vote_percentage,
+            cr.rank
+        FROM positions p
+        LEFT JOIN candidates c ON p.id = c.position_id
+        LEFT JOIN CandidateRanks cr ON p.id = cr.position_id AND c.id = cr.candidate_id
+        LEFT JOIN PositionVotes pv ON p.id = pv.id
+        ORDER BY p.id, c.id
     ");
-    $recentVotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $liveRankings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Only get candidates count for Super Admin
     if ($_SESSION['user_role'] === 'Super Admin') {
@@ -55,7 +86,7 @@ try {
             FROM positions p
             LEFT JOIN candidates c ON p.id = c.position_id
             GROUP BY p.id, p.position_name
-            ORDER BY p.id ASC
+            ORDER BY p.id
         ");
         $candidatesByPosition = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -497,6 +528,7 @@ try {
             display: flex;
             align-items: center;
             gap: 1rem;
+            height: 100%;
         }
 
         .election-status::before {
@@ -524,14 +556,8 @@ try {
         .status-header {
             display: flex;
             align-items: center;
-            gap: 1.5rem;
-        }
-
-        .status-header h3 {
-            margin: 0;
-            color: #333;
-            font-size: 1.25rem;
-            font-weight: 600;
+            gap: 0.5rem;
+            height: 100%;
         }
 
         .status-indicator {
@@ -561,6 +587,94 @@ try {
         .status-indicator i {
             margin-right: 0.5rem;
             font-size: 1rem;
+        }
+
+        .election-status .status-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: #444;
+        }
+
+        .election-name-control input {
+            border: 1px solid rgba(57, 60, 178, 0.2);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            color: var(--primary-color);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .election-name-control input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(57, 60, 178, 0.1);
+        }
+
+        .election-name {
+            padding: 0.5rem 1rem;
+            background: var(--accent-color);
+            border-radius: 6px;
+            color: var(--primary-color);
+        }
+
+        .section-header {
+            background: white;
+            padding: 1rem;
+            padding-left: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(57, 60, 178, 0.1);
+            margin-bottom: 2rem;
+            height: 100px;
+            display: flex;
+            align-items: center;
+        }
+
+        .election-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .status-section {
+            min-width: 200px;
+            height: 65px;
+            display: flex;
+            margin-top: 30px;
+            align-items: center;
+        }
+
+        .progress {
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: var(--gradient-primary);
+            transition: width 0.3s ease;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .position-rankings .table th {
+            border-top: none;
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .position-rankings .table td {
+            padding: 0.6rem 0.75rem;
+            vertical-align: middle;
+        }
+        
+        .position-rankings h6 {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
         }
     </style>
 </head>
@@ -615,17 +729,34 @@ try {
 
             <!-- Main Content -->
             <div class="col-md-10 main-content">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Dashboard</h2>
-                    <div class="election-status <?php echo strtolower($electionStatus); ?>">
-                        <div class="status-header">
-                            <h3>Election Status</h3>
-                            <div class="status-indicator <?php echo strtolower($electionStatus); ?>">
-                                <i class="bx <?php 
-                                    echo $electionStatus === 'Voting' ? 'bx-check-circle' : 
-                                        ($electionStatus === 'Ended' ? 'bx-x-circle' : 'bx-time'); 
-                                ?>"></i>
-                                <?php echo $electionStatus; ?>
+                <div class="section-header">
+                    <h2 style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-size: 24px; color: var(--primary-color); min-width: 200px;">Dashboard</h2>
+                    <div class="election-info">
+                        <?php if ($_SESSION['user_role'] === 'Super Admin'): ?>
+                        <div class="election-name-control">
+                            <input type="text" 
+                                id="electionName" 
+                                class="form-control" 
+                                value="<?php echo htmlspecialchars($_SESSION['election_name']); ?>" 
+                                style="min-width: 250px;">
+                        </div>
+                        <?php else: ?>
+                        <div class="election-name">
+                            <h5 class="mb-0"><?php echo htmlspecialchars($_SESSION['election_name']); ?></h5>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="status-section">
+                        <div class="election-status <?php echo strtolower($electionStatus); ?>">
+                            <div class="status-header">
+                                <h3>Election Status</h3>
+                                <div class="status-indicator <?php echo strtolower($electionStatus); ?>">
+                                    <i class="bx <?php 
+                                        echo $electionStatus === 'Voting' ? 'bx-check-circle' : 
+                                            ($electionStatus === 'Ended' ? 'bx-x-circle' : 'bx-time'); 
+                                    ?>"></i>
+                                    <?php echo $electionStatus; ?>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -700,56 +831,85 @@ try {
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header">
-                                <h5 class="card-title">
-                                    <i class='bx bx-list-check'></i>
-                                    Candidates by Position
-                                </h5>
+                                <h5 class="card-title mb-0">Candidates by Position</h5>
                             </div>
                             <div class="card-body">
-                                <ul class="position-list">
-                                    <?php foreach ($candidatesByPosition as $position): ?>
-                                    <li class="position-item">
-                                        <span class="position-name"><?php echo htmlspecialchars($position['position_name']); ?></span>
-                                        <span class="candidate-count"><?php echo $position['count']; ?> Candidates</span>
-                                    </li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-
-                    <div class="col-md-<?php echo $_SESSION['user_role'] === 'Super Admin' ? '6' : '12'; ?>">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title">
-                                    <i class='bx bx-history'></i>
-                                    Recent Voter
-                                </h5>
-                            </div>
-                            <div class="card-body p-0">
                                 <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
+                                    <table class="table">
                                         <thead>
                                             <tr>
-                                                <th>Time</th>
-                                                <th>Voter</th>
+                                                <th>Position</th>
+                                                <th>Number of Candidates</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($recentVotes as $vote): ?>
+                                            <?php foreach ($candidatesByPosition as $position): ?>
                                             <tr>
-                                                <td class="activity-time">
-                                                    <?php echo date('M j, Y g:i A', strtotime($vote['timestamp'])); ?>
-                                                </td>
-                                                <td class="voter-name">
-                                                    <?php echo htmlspecialchars($vote['voter_name']); ?>
-                                                </td>
+                                                <td><?php echo htmlspecialchars($position['position_name']); ?></td>
+                                                <td><?php echo $position['count']; ?></td>
                                             </tr>
                                             <?php endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <!-- Live Rankings Section -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Live Rankings by Position</h5>
+                            </div>
+                            <div class="card-body">
+                                <?php
+                                $currentPosition = '';
+                                $currentPositionId = null;
+                                foreach ($liveRankings as $ranking):
+                                    if ($currentPositionId !== $ranking['position_id']):
+                                        if ($currentPosition !== ''): ?>
+                                        </tbody></table></div>
+                                        <?php endif;
+                                        $currentPosition = $ranking['position_name'];
+                                        $currentPositionId = $ranking['position_id'];
+                                ?>
+                                <div class="position-rankings mb-4">
+                                    <h6 class="text-primary mb-3"><?php echo htmlspecialchars($ranking['position_name']); ?></h6>
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 15%">Rank</th>
+                                                <th>Candidate</th>
+                                                <th style="width: 45%">Percentage</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                    <?php endif; ?>
+                                    <tr>
+                                        <td class="text-center"><?php echo $ranking['rank']; ?></td>
+                                        <td><?php echo htmlspecialchars($ranking['candidate_name']); ?></td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         style="width: <?php echo $ranking['vote_percentage']; ?>%" 
+                                                         aria-valuenow="<?php echo $ranking['vote_percentage']; ?>" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                                <span class="ms-2 text-muted" style="min-width: 3.5rem; font-size: 0.9rem;">
+                                                    <?php echo number_format($ranking['vote_percentage'], 1); ?>%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach;
+                                if ($currentPosition !== ''): ?>
+                                    </tbody></table></div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -759,5 +919,34 @@ try {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const electionNameInput = document.getElementById('electionName');
+            if (electionNameInput) {
+                let timeoutId;
+                electionNameInput.addEventListener('input', function() {
+                    clearTimeout(timeoutId);
+                    timeoutId = setTimeout(() => {
+                        fetch('update_election_name.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: 'election_name=' + encodeURIComponent(this.value)
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.style.borderColor = '#28a745';
+                                setTimeout(() => {
+                                    this.style.borderColor = '';
+                                }, 1000);
+                            }
+                        });
+                    }, 500);
+                });
+            }
+        });
+    </script>
 </body>
 </html>

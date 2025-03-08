@@ -12,6 +12,11 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['Super Ad
 try {
     $stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
     $electionStatus = $stmt->fetch(PDO::FETCH_COLUMN) ?? 'Pre-Voting';
+
+    // Get election name from session or set default
+    if (!isset($_SESSION['election_name'])) {
+        $_SESSION['election_name'] = "SSLG ELECTION 2025";
+    }
 } catch (PDOException $e) {
     error_log("Error fetching election status: " . $e->getMessage());
     $electionStatus = 'Unknown';
@@ -63,7 +68,7 @@ try {
             FROM positions p
             LEFT JOIN candidates c ON p.id = c.position_id
             LEFT JOIN VoteCounts vc ON c.id = vc.candidate_id
-            ORDER BY p.position_name, vote_count DESC
+            ORDER BY p.id ASC, c.id ASC
         ");
         
         // Organize results by position
@@ -219,30 +224,41 @@ switch($electionStatus) {
 
         .stats-card {
             background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 12px;
+            padding: 2rem 1.5rem;
+            height: 180px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-        }
-
-        .stats-card h4 {
-            color: var(--primary-dark);
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
+        .stats-card .card-title {
+            color: #666;
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            white-space: nowrap;
         }
 
         .stats-card .display-4 {
             color: var(--primary-color);
+            font-size: 3.5rem;
             font-weight: 600;
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            line-height: 1;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .row.stats-row {
+            margin-bottom: 2rem;
+        }
+
+        .row.stats-row > div {
+            margin-bottom: 0;
         }
 
         .results-section {
@@ -253,72 +269,60 @@ switch($electionStatus) {
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        .position-card {
-            background: var(--light-bg);
+        .position-section {
+            background: white;
             border-radius: 12px;
             padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            page-break-inside: avoid;
+            page-break-after: always;
+            margin-bottom: 2rem;
         }
 
-        .position-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        .position-section:last-child {
+            page-break-after: avoid;
+        }
+
+        .position-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--accent-color);
         }
 
         .position-title {
             color: var(--primary-color);
-            font-size: 1.25rem;
+            font-size: 1.8rem;
             font-weight: 600;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--accent-color);
+            margin: 0;
+        }
+
+        .candidates-list {
+            padding: 0.5rem 0;
         }
 
         .candidate-row {
-            display: flex;
-            align-items: center;
             padding: 1rem;
-            background: white;
             border-radius: 8px;
             margin-bottom: 1rem;
-            transition: all 0.2s ease;
-        }
-
-        .candidate-row:hover {
-            transform: translateX(5px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            background: var(--light-bg);
         }
 
         .candidate-info {
-            flex: 1;
-            margin-right: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
 
         .candidate-name {
-            font-weight: 600;
-            color: var(--primary-dark);
-            margin-bottom: 0.25rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #333;
         }
 
         .vote-count {
-            color: var(--primary-light);
-            font-size: 0.9rem;
-        }
-
-        .progress {
-            height: 8px;
-            margin-top: 0.5rem;
-            background: var(--accent-color);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            background: var(--gradient-primary);
-            border-radius: 4px;
-            transition: width 0.6s ease;
+            font-size: 1rem;
+            color: var(--primary-color);
+            font-weight: 500;
         }
 
         .export-btn {
@@ -340,6 +344,187 @@ switch($electionStatus) {
 
         .export-btn i {
             font-size: 1.25rem;
+        }
+
+        /* Election Status Styles */
+        .election-status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .election-status-label {
+            color: #333;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #FFF3CD;
+            color: #856404;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .status-badge i {
+            font-size: 1.1rem;
+        }
+
+        .status-badge.pre-voting {
+            background: #FFF3CD;
+            color: #856404;
+        }
+
+        .status-badge.voting {
+            background: #D4EDDA;
+            color: #155724;
+        }
+
+        .status-badge.ended {
+            background: #F8D7DA;
+            color: #721C24;
+        }
+
+        /* Election Control Styles */
+        .election-control {
+            background: linear-gradient(135deg, #fff, var(--accent-color));
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 6px rgba(57, 60, 178, 0.08);
+            border: 1px solid rgba(57, 60, 178, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .election-control::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--accent-color) 0%, transparent 60%);
+            border-radius: 0 12px 0 100%;
+            opacity: 0.5;
+        }
+
+        .election-control h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .election-control h4 i {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            background: var(--accent-color);
+            padding: 6px;
+            border-radius: 6px;
+        }
+
+        .election-control form {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: white;
+            padding: 0.75rem;
+            border-radius: 8px;
+            position: relative;
+            border: 1px solid rgba(57, 60, 178, 0.08);
+        }
+
+        .election-control .form-select {
+            min-width: 140px;
+            height: 36px;
+            padding: 0 2rem 0 0.75rem;
+            font-size: 0.9rem;
+            border: 1px solid rgba(57, 60, 178, 0.1);
+            border-radius: 6px;
+            background-position: right 0.5rem center;
+            background-color: white;
+            color: var(--primary-color);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .election-control .form-select:hover {
+            border-color: var(--primary-color);
+        }
+
+        .election-control .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(57, 60, 178, 0.1);
+            outline: none;
+        }
+
+        /* PDF-specific styles */
+        .pdf-header {
+            display: none;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .pdf-header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .pdf-header h3 {
+            color: var(--primary-dark);
+            font-size: 1.8rem;
+            font-weight: 500;
+        }
+
+        .pdf-header p {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        @media print {
+            .position-section {
+                break-inside: avoid;
+                break-after: page;
+            }
+
+            .position-section:last-child {
+                break-after: avoid;
+            }
+
+            .candidates-list {
+                margin-top: 1rem;
+            }
+
+            .pdf-header {
+                display: block !important;
+            }
+
+            .sidebar, .export-btn {
+                display: none !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+            }
         }
     </style>
 </head>
@@ -393,13 +578,22 @@ switch($electionStatus) {
             </div>
 
             <!-- Main Content -->
-            <div class="col main-content">
+            <div class="col-md-10 main-content">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Election Results</h2>
+                    <div class="d-flex align-items-center">
+                        <h2 class="mb-0" style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-size: 24px;">Election Results</h2>
+                    </div>
                     <div class="d-flex align-items-center gap-3">
-                        <span class="badge bg-<?php echo $electionStatus === 'Ended' ? 'success' : 'warning'; ?> fs-5">
-                            Status: <?php echo htmlspecialchars($electionStatus); ?>
-                        </span>
+                        <div class="election-status">
+                            <span class="election-status-label">Election Status</span>
+                            <div class="status-badge <?php echo strtolower($electionStatus); ?>">
+                                <i class="bx <?php 
+                                    echo $electionStatus === 'Voting' ? 'bx-check-circle' : 
+                                        ($electionStatus === 'Ended' ? 'bx-x-circle' : 'bx-time'); 
+                                ?>"></i>
+                                <?php echo $electionStatus; ?>
+                            </div>
+                        </div>
                         <?php if (!empty($positions)): ?>
                         <button class="export-btn" onclick="generatePDF()">
                             <i class='bx bxs-file-pdf'></i>
@@ -414,7 +608,13 @@ switch($electionStatus) {
                 <?php endif; ?>
 
                 <!-- Results Section -->
-                <div class="results-section">
+                <div class="results-section" id="pdf-content">
+                    <!-- Election Name for PDF -->
+                    <div class="text-center mb-4 pdf-header">
+                        <h1 class="mb-2">Election Results</h1>
+                        <h3 class="text-primary mb-4"><?php echo htmlspecialchars($_SESSION['election_name']); ?></h3>
+                        <p class="text-muted">Generated on: <?php echo date('F j, Y g:i A'); ?></p>
+                    </div>
                     <?php if (empty($positions)): ?>
                         <div class="alert alert-info">
                             <h4 class="alert-heading">No Results Available</h4>
@@ -431,64 +631,58 @@ switch($electionStatus) {
                         </div>
                     <?php else: ?>
                         <!-- Statistics Cards -->
-                        <div class="row mb-4">
-                            <div class="col-md-4">
+                        <div class="row stats-row">
+                            <div class="col-md-4 mb-4 mb-md-0">
                                 <div class="stats-card">
-                                    <h4>Total Voters</h4>
+                                    <h5 class="card-title">Total Voters</h5>
                                     <div class="display-4"><?php echo $totalVoters; ?></div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4 mb-4 mb-md-0">
                                 <div class="stats-card">
-                                    <h4>Total Votes Cast</h4>
+                                    <h5 class="card-title">Votes Cast</h5>
                                     <div class="display-4"><?php echo $totalVotesCast; ?></div>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="stats-card">
-                                    <h4>Voter Turnout</h4>
-                                    <div class="display-4">
-                                        <?php echo $totalVoters > 0 ? round(($totalVotesCast / $totalVoters) * 100) : 0; ?>%
-                                    </div>
+                                    <h5 class="card-title">Voter Turnout</h5>
+                                    <div class="display-4"><?php echo $totalVoters > 0 ? round(($totalVotesCast / $totalVoters) * 100) : 0; ?>%</div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Results by Position -->
-                        <div class="row">
-                            <?php foreach ($positions as $position): ?>
-                                <div class="col-md-6">
-                                    <div class="position-card">
-                                        <h3 class="position-title"><?php echo htmlspecialchars($position['name']); ?></h3>
-                                        <?php if (empty($position['candidates'])): ?>
-                                            <p class="text-muted">No candidates for this position.</p>
-                                        <?php else: ?>
-                                            <?php foreach ($position['candidates'] as $candidate): ?>
-                                                <div class="candidate-row">
-                                                    <div class="candidate-info">
-                                                        <div class="candidate-name">
-                                                            <?php echo htmlspecialchars($candidate['name']); ?>
-                                                        </div>
-                                                        <div class="vote-count">
-                                                            <?php echo $candidate['votes']; ?> votes
-                                                            (<?php echo $position['total_voters'] > 0 ? round(($candidate['votes'] / $position['total_voters']) * 100) : 0; ?>%)
-                                                        </div>
-                                                        <div class="progress">
-                                                            <div class="progress-bar" role="progressbar" 
-                                                                 style="width: <?php echo $position['total_voters'] > 0 ? ($candidate['votes'] / $position['total_voters']) * 100 : 0; ?>%" 
-                                                                 aria-valuenow="<?php echo $position['total_voters'] > 0 ? ($candidate['votes'] / $position['total_voters']) * 100 : 0; ?>" 
-                                                                 aria-valuemin="0" 
-                                                                 aria-valuemax="100">
-                                                            </div>
-                                                        </div>
+                        <!-- Position Results -->
+                        <?php foreach ($positions as $position): ?>
+                            <div class="position-section mb-5">
+                                <div class="position-header">
+                                    <h3 class="position-title"><?php echo htmlspecialchars($position['name']); ?></h3>
+                                </div>
+                                <div class="candidates-list">
+                                    <?php foreach ($position['candidates'] as $candidate): ?>
+                                        <div class="candidate-row">
+                                            <div class="candidate-info">
+                                                <div class="candidate-name">
+                                                    <?php echo htmlspecialchars($candidate['name']); ?>
+                                                </div>
+                                                <div class="vote-count">
+                                                    <?php echo $candidate['votes']; ?> votes
+                                                    (<?php echo $position['total_voters'] > 0 ? round(($candidate['votes'] / $position['total_voters']) * 100) : 0; ?>%)
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         style="width: <?php echo $position['total_voters'] > 0 ? ($candidate['votes'] / $position['total_voters']) * 100 : 0; ?>%" 
+                                                         aria-valuenow="<?php echo $position['total_voters'] > 0 ? ($candidate['votes'] / $position['total_voters']) * 100 : 0; ?>" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
                                                     </div>
                                                 </div>
-                                            <?php endforeach; ?>
-                                        <?php endif; ?>
-                                    </div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
                                 </div>
-                            <?php endforeach; ?>
-                        </div>
+                            </div>
+                        <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
             </div>
@@ -498,13 +692,10 @@ switch($electionStatus) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function generatePDF() {
-            // Get the element
-            const element = document.querySelector('.results-section');
-            
-            // Configuration for PDF generation
+            const element = document.getElementById('pdf-content');
             const opt = {
-                margin: [10, 10],
-                filename: 'election_results.pdf',
+                margin: 1,
+                filename: '<?php echo preg_replace("/[^a-zA-Z0-9]+/", "_", $_SESSION["election_name"]); ?>_results.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { 
                     scale: 2,
@@ -512,15 +703,25 @@ switch($electionStatus) {
                     logging: false
                 },
                 jsPDF: { 
-                    unit: 'mm', 
-                    format: 'a4', 
+                    unit: 'in', 
+                    format: 'letter', 
                     orientation: 'portrait' 
-                }
+                },
+                pagebreak: { mode: 'avoid-all' }
             };
 
-            // Generate PDF
-            html2pdf().set(opt).from(element).save()
-                .catch(err => console.error('Error generating PDF:', err));
+            // Force show the PDF header
+            const pdfHeader = element.querySelector('.pdf-header');
+            if (pdfHeader) {
+                pdfHeader.style.display = 'block';
+            }
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Hide the PDF header again after generating
+                if (pdfHeader) {
+                    pdfHeader.style.display = 'none';
+                }
+            });
         }
     </script>
 </body>

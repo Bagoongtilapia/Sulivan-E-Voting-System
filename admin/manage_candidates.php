@@ -224,18 +224,34 @@ if (!file_exists($uploadDir)) {
         }
 
         .add-candidate-btn {
-            background: var(--gradient-primary);
+            background: var(--primary-color);
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
         }
 
         .add-candidate-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(57, 60, 178, 0.2);
+            background: var(--primary-light);
+            color: white;
+            text-decoration: none;
+        }
+
+        .add-candidate-btn i {
+            font-size: 16px;
+        }
+
+        .section-header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(57, 60, 178, 0.1);
+            margin-bottom: 2rem;
         }
 
         /* Add animation for alerts */
@@ -468,11 +484,16 @@ if (!file_exists($uploadDir)) {
 
             <!-- Main Content -->
             <div class="col-md-10 main-content">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Manage Candidates</h2>
-                    <button type="button" class="add-candidate-btn" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
-                        <i class='bx bx-plus'></i> Add New Candidate
-                    </button>
+                <div class="section-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <h2 class="mb-0" style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-size: 24px; color: var(--primary-color);">Manage Candidates</h2>
+                        </div>
+                        <button class="add-candidate-btn" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
+                            <i class='bx bx-plus'></i>
+                            Add New Candidate
+                        </button>
+                    </div>
                 </div>
 
                 <?php if (isset($_GET['success'])): ?>
@@ -503,11 +524,11 @@ if (!file_exists($uploadDir)) {
                                     <?php echo nl2br(htmlspecialchars($candidate['platform'])); ?>
                                 </div>
                                 <div class="action-buttons">
-                                    <button class="btn btn-edit" onclick="editCandidate(<?php echo htmlspecialchars(json_encode($candidate)); ?>)">
+                                    <button class="btn btn-edit" data-id="<?php echo $candidate['id']; ?>" data-name="<?php echo $candidate['name']; ?>" data-position="<?php echo $candidate['position_name']; ?>" data-platform="<?php echo $candidate['platform']; ?>">
                                         <i class='bx bx-edit'></i> Edit
                                     </button>
                                     <?php if ($_SESSION['user_role'] === 'Super Admin'): ?>
-                                        <button class="btn btn-remove" onclick="deleteCandidate(<?php echo $candidate['id']; ?>)">
+                                        <button class="btn btn-remove" data-id="<?php echo $candidate['id']; ?>" data-name="<?php echo $candidate['name']; ?>">
                                             <i class='bx bx-trash'></i> Remove
                                         </button>
                                     <?php endif; ?>
@@ -576,6 +597,26 @@ if (!file_exists($uploadDir)) {
         </div>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteCandidateModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this candidate? This action cannot be undone.</p>
+                    <p class="text-danger"><strong>Candidate Name: </strong><span id="deleteModalCandidateName"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Candidate Modal -->
     <div class="modal fade" id="editCandidateModal" tabindex="-1">
         <div class="modal-dialog">
@@ -584,13 +625,13 @@ if (!file_exists($uploadDir)) {
                     <h5 class="modal-title">Edit Candidate</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form action="process_candidate.php" method="POST" enctype="multipart/form-data">
+                <form id="editCandidateForm" action="edit_candidate.php" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="edit">
-                    <input type="hidden" name="candidate_id" id="edit_candidate_id">
+                    <input type="hidden" name="candidate_id" id="editCandidateId">
                     <div class="modal-body">
                         <div class="form-group">
                             <label class="form-label" for="edit_position">Position</label>
-                            <select class="form-select" name="position_id" id="edit_position" required>
+                            <select class="form-select" name="position_id" id="editPosition" required>
                                 <?php foreach ($positions as $position): ?>
                                     <option value="<?php echo $position['id']; ?>">
                                         <?php echo htmlspecialchars($position['position_name']); ?>
@@ -604,7 +645,7 @@ if (!file_exists($uploadDir)) {
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="edit_platform">Platform</label>
-                            <textarea class="form-control" name="platform" id="edit_platform" rows="4" required></textarea>
+                            <textarea class="form-control" name="platform" id="editPlatform" rows="4" required></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -616,8 +657,91 @@ if (!file_exists($uploadDir)) {
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        $(document).ready(function() {
+            // Edit candidate functionality
+            $('.btn-edit').click(function() {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                const position = $(this).data('position');
+                const platform = $(this).data('platform');
+                
+                // Set values in edit modal
+                $('#editCandidateId').val(id);
+                $('#editPosition').val(position);
+                $('#editPlatform').val(platform);
+                
+                // Show edit modal
+                $('#editCandidateModal').modal('show');
+            });
+
+            // Handle edit form submission
+            $('#editCandidateForm').submit(function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                
+                $.ajax({
+                    url: 'edit_candidate.php',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Error updating candidate: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Error updating candidate. Please try again.');
+                    }
+                });
+            });
+
+            // Delete candidate functionality
+            let candidateToDelete = null;
+
+            $('.btn-remove').click(function() {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                candidateToDelete = id;
+                
+                // Set the candidate name in the modal
+                $('#deleteModalCandidateName').text(name);
+                
+                // Show delete confirmation modal
+                $('#deleteCandidateModal').modal('show');
+            });
+
+            // Handle delete confirmation
+            $('#confirmDelete').click(function() {
+                if (candidateToDelete) {
+                    $.ajax({
+                        url: 'delete_candidate.php',
+                        type: 'POST',
+                        data: {
+                            candidate_id: candidateToDelete
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                location.reload();
+                            } else {
+                                alert('Error deleting candidate: ' + response.message);
+                            }
+                        },
+                        error: function() {
+                            alert('Error deleting candidate. Please try again.');
+                        }
+                    });
+                }
+                $('#deleteCandidateModal').modal('hide');
+            });
+        });
+
         function previewImage(input) {
             const previewIcon = document.querySelector('.image-preview-wrapper i');
             const previewText = document.querySelector('.image-preview-text');
@@ -635,19 +759,6 @@ if (!file_exists($uploadDir)) {
                 // Show the icon and text when no image is selected
                 previewIcon.style.display = 'block';
                 previewText.style.display = 'block';
-            }
-        }
-
-        function editCandidate(candidate) {
-            document.getElementById('edit_candidate_id').value = candidate.id;
-            document.getElementById('edit_position').value = candidate.position_id;
-            document.getElementById('edit_platform').value = candidate.platform;
-            $('#editCandidateModal').modal('show');
-        }
-
-        function deleteCandidate(candidateId) {
-            if (confirm('Are you sure you want to delete this candidate?')) {
-                window.location.href = 'process_candidate.php?action=delete&id=' + candidateId;
             }
         }
     </script>

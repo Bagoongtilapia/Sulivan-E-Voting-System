@@ -50,9 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (!empty($password)) {
-                // Update with new password
+                // Update with new password and reset password_changed
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, password = ? WHERE id = ? AND role = 'Sub-Admin'");
+                $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, password = ?, password_changed = 0 WHERE id = ? AND role = 'Sub-Admin'");
                 $stmt->execute([$name, $email, $hashed_password, $admin_id]);
             } else {
                 // Update without changing password
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit();
             }
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'Sub-Admin')");
+            $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, password_changed) VALUES (?, ?, ?, 'Sub-Admin', 0)");
             $stmt->execute([$name, $email, $hashed_password]);
             header('Location: manage_admins.php?success=Sub-Admin added successfully');
         }
