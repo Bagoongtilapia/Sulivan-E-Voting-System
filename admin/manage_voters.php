@@ -230,6 +230,65 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
             outline: none;
         }
 
+        /* DataTables Custom Styling */
+        .dataTables_length {
+            margin-bottom: 1rem;
+        }
+        
+        .dataTables_length select {
+            padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            min-width: 65px;
+        }
+
+        .dataTables_length select:focus {
+            border-color: var(--primary-light);
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(85, 88, 205, 0.25);
+        }
+
+        .dataTables_length label {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .dataTables_filter input {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+
+        .dataTables_filter input:focus {
+            border-color: var(--primary-light);
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(85, 88, 205, 0.25);
+        }
+
+        /* Fix dropdown alignment */
+        div.dataTables_length select {
+            width: 50px !important;
+        }
+
         /* Modal Styles */
         .modal-content {
             border: none;
@@ -487,18 +546,15 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <td>
                                             <?php if ($electionStatus === 'Pre-Voting'): ?>
                                             <div class="d-flex gap-2">
-                                                <button class="btn btn-sm btn-info action-btn" 
-                                                        onclick="editVoter(<?php echo $voter['id']; ?>, '<?php echo htmlspecialchars($voter['name']); ?>', '<?php echo htmlspecialchars($voter['email']); ?>')"
-                                                        data-bs-toggle="tooltip" 
-                                                        title="Edit voter's name, email, or reset password">
-                                                    <i class='bx bx-edit-alt'></i> Edit
-                                                </button>
-                                                <button class="btn btn-sm btn-danger action-btn" 
-                                                        onclick="deleteVoter(<?php echo $voter['id']; ?>)"
-                                                        data-bs-toggle="tooltip" 
-                                                        title="Remove voter and their voting records">
-                                                    <i class='bx bx-trash'></i> Delete
-                                                </button>
+                                                <form action="process_voter.php" method="POST" class="d-inline">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="voter_id" value="<?php echo $voter['id']; ?>">
+                                                    <button type="submit" class="btn btn-sm btn-danger action-btn" 
+                                                            data-bs-toggle="tooltip" 
+                                                            title="Remove voter and their voting records">
+                                                        <i class='bx bx-trash'></i> Delete
+                                                    </button>
+                                                </form>
                                             </div>
                                             <?php else: ?>
                                             <span class="text-muted" data-bs-toggle="tooltip" title="Voter management is disabled during voting">
@@ -525,35 +581,6 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </button>
     </div>
     <?php endif; ?>
-
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirm Delete</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete this voter? This action cannot be undone.</p>
-                    <div class="alert alert-warning">
-                        <i class='bx bx-error-circle me-2'></i>
-                        Note: Deleting a voter will remove all their voting records.
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <form action="process_voter.php" method="POST" class="d-inline">
-                        <input type="hidden" name="action" value="delete">
-                        <input type="hidden" name="voter_id" id="delete_voter_id">
-                        <button type="submit" class="btn btn-danger">
-                            <i class='bx bx-trash me-2'></i>Delete Voter
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Add Voter Modal -->
     <div class="modal fade" id="addVoterModal" tabindex="-1">
@@ -647,7 +674,6 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
             // Initialize DataTable with proper ordering
             $('#votersTable').DataTable({
                 pageLength: 10,
-                order: [[0, 'asc']], // Order by ID for first-come-first-serve
                 language: {
                     search: "",
                     searchPlaceholder: "Search voters...",
@@ -687,11 +713,6 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
             document.getElementById('edit_email').value = email;
             document.getElementById('edit_password').value = '';
             new bootstrap.Modal(document.getElementById('editVoterModal')).show();
-        }
-
-        function deleteVoter(voterId) {
-            document.getElementById('delete_voter_id').value = voterId;
-            new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
         }
     </script>
 </body>

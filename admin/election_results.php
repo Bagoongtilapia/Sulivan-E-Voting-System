@@ -8,10 +8,12 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['Super Ad
     exit();
 }
 
-// Get election status
+// Get election status and authentication status
 try {
-    $stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
-    $electionStatus = $stmt->fetch(PDO::FETCH_COLUMN) ?? 'Pre-Voting';
+    $stmt = $pdo->query("SELECT status, is_result_authenticated FROM election_status ORDER BY id DESC LIMIT 1");
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $electionStatus = $result['status'] ?? 'Pre-Voting';
+    $isResultAuthenticated = $result['is_result_authenticated'] ?? false;
 
     // Get election name from session or set default
     if (!isset($_SESSION['election_name'])) {
@@ -20,6 +22,7 @@ try {
 } catch (PDOException $e) {
     error_log("Error fetching election status: " . $e->getMessage());
     $electionStatus = 'Unknown';
+    $isResultAuthenticated = false;
 }
 
 // Initialize variables
@@ -526,6 +529,53 @@ switch($electionStatus) {
                 padding: 0 !important;
             }
         }
+
+        /* Enhanced Button Styles */
+        .action-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            min-width: 160px;
+            justify-content: center !important;
+            border: none;
+        }
+
+        .btn-authenticate {
+            background: #28C76F;
+            color: white;
+        }
+
+        .btn-authenticate:hover {
+            background: #24b565;
+            color: white;
+        }
+
+        .btn-export {
+            background: #4B49AC;
+            color: white;
+        }
+
+        .btn-export:hover {
+            background: #413e9b;
+            color: white;
+        }
+
+        .actions-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            color: #393CB2;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -579,29 +629,45 @@ switch($electionStatus) {
 
             <!-- Main Content -->
             <div class="col-md-10 main-content">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="d-flex align-items-center">
-                        <h2 class="mb-0" style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-size: 24px;">Election Results</h2>
-                    </div>
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="election-status">
-                            <span class="election-status-label">Election Status</span>
-                            <div class="status-badge <?php echo strtolower($electionStatus); ?>">
-                                <i class="bx <?php 
-                                    echo $electionStatus === 'Voting' ? 'bx-check-circle' : 
-                                        ($electionStatus === 'Ended' ? 'bx-x-circle' : 'bx-time'); 
-                                ?>"></i>
-                                <?php echo $electionStatus; ?>
-                            </div>
+                <div class="actions-container">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="page-title">Election Results</h2>
+                        <div class="d-flex gap-3">
+                            <?php if ($_SESSION['user_role'] === 'Super Admin' && $electionStatus === 'Ended' && !$isResultAuthenticated): ?>
+                                <form action="process_election.php" method="POST" class="d-inline">
+                                    <input type="hidden" name="action" value="authenticate_results">
+                                    <button type="submit" class="btn action-btn btn-authenticate d-flex align-items-center gap-2">
+                                        <i class='bx bx-check'></i>
+                                        Authenticate Results
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+                            
+                            <?php if ($electionStatus === 'Ended' && ($isResultAuthenticated || $_SESSION['user_role'] === 'Super Admin')): ?>
+                                <button onclick="generatePDF()" class="btn action-btn btn-export d-flex align-items-center gap-2">
+                                    <i class='bx bx-upload'></i>
+                                    Export Results
+                                </button>
+                            <?php endif; ?>
                         </div>
-                        <?php if (!empty($positions)): ?>
-                        <button class="export-btn" onclick="generatePDF()">
-                            <i class='bx bxs-file-pdf'></i>
-                            Export Results
-                        </button>
-                        <?php endif; ?>
                     </div>
                 </div>
+
+                <?php if (isset($_GET['success'])): ?>
+                    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                        <i class='bx bx-check-circle me-2'></i>
+                        <?php echo htmlspecialchars($_GET['success']); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (isset($_GET['error'])): ?>
+                    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                        <i class='bx bx-error-circle me-2'></i>
+                        <?php echo htmlspecialchars($_GET['error']); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
 
                 <?php if ($error): ?>
                     <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>

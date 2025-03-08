@@ -8,17 +8,20 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Student') {
     exit();
 }
 
-// Get election status
+// Get election status and authentication status
 try {
-    $stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
-    $electionStatus = $stmt->fetch(PDO::FETCH_COLUMN) ?? 'Pre-Voting';
+    $stmt = $pdo->query("SELECT status, is_result_authenticated FROM election_status ORDER BY id DESC LIMIT 1");
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $electionStatus = $result['status'] ?? 'Pre-Voting';
+    $isResultAuthenticated = $result['is_result_authenticated'] ?? false;
 } catch (PDOException $e) {
     $error = "Error fetching election status";
     $electionStatus = 'Unknown';
+    $isResultAuthenticated = false;
 }
 
-// Only show results if election has ended
-if ($electionStatus === 'Ended') {
+// Only show results if election has ended AND results are authenticated
+if ($electionStatus === 'Ended' && $isResultAuthenticated) {
     try {
         // Get winners for each position
         $stmt = $pdo->query("
@@ -240,13 +243,34 @@ if ($electionStatus === 'Ended') {
         .alert {
             border: none;
             border-radius: 12px;
-            padding: 15px 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .alert i {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .alert-info {
+            background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            color: var(--primary-color);
+        }
+
+        .alert-info i {
+            color: var(--primary-color);
         }
 
         .alert-danger {
-            background-color: rgba(220, 53, 69, 0.1);
+            background: linear-gradient(45deg, rgba(255, 99, 99, 0.1), rgba(255, 155, 155, 0.1));
             color: #dc3545;
-            border-left: 4px solid #dc3545;
+        }
+
+        .alert-danger i {
+            color: #dc3545;
         }
 
         .btn-back {
@@ -320,9 +344,14 @@ if ($electionStatus === 'Ended') {
             </div>
         <?php else: ?>
             <?php if ($electionStatus !== 'Ended'): ?>
-                <div class="alert alert-danger">
+                <div class="alert alert-info">
                     <i class='bx bx-time-five me-2'></i>
                     Election results are not available yet. Please check back after the election has ended.
+                </div>
+            <?php elseif (!$isResultAuthenticated): ?>
+                <div class="alert alert-info">
+                    <i class='bx bx-lock-alt me-2'></i>
+                    Election results are currently being verified. Please check back once they have been authenticated.
                 </div>
             <?php else: ?>
                 <div class="results-header animate-winner">

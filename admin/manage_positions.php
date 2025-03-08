@@ -143,7 +143,6 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
             box-shadow: 0 2px 10px rgba(57, 60, 178, 0.1);
             margin-bottom: 2rem;
         }
-
         .btn-primary {
             background: var(--gradient-primary);
             border: none;
@@ -505,7 +504,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <form action="process_position.php" method="POST">
                     <input type="hidden" name="position_id" id="delete_position_id">
                     <div class="modal-body">
-                        <p>Are you sure you want to delete the position "<span id="delete_position_name"></span>"?</p>
+                        <p>Are you sure you want to delete the position?</p>
                         <p class="text-danger">This action cannot be undone.</p>
                     </div>
                     <div class="modal-footer">

@@ -76,14 +76,17 @@ $stmt = $pdo->prepare("SELECT password_changed FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch();
 
-// Check election status
+// Check election status and authentication
 try {
-    $stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
-    $electionStatus = $stmt->fetch(PDO::FETCH_COLUMN) ?? 'Pre-Voting';
+    $stmt = $pdo->query("SELECT status, is_result_authenticated FROM election_status ORDER BY id DESC LIMIT 1");
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $electionStatus = $result['status'] ?? 'Pre-Voting';
+    $isResultAuthenticated = $result['is_result_authenticated'] ?? false;
 } catch (PDOException $e) {
     error_log("Error fetching election status: " . $e->getMessage());
     $error = "Error fetching election status";
     $electionStatus = 'Unknown';
+    $isResultAuthenticated = false;
 }
 
 // Check if user has already voted
@@ -922,6 +925,49 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
         .modal.show .modal-dialog {
             transform: scale(1);
         }
+        
+        /* Alert Styles */
+        .alert {
+            border: none;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .alert i {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .alert-info {
+            background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            color: var(--primary-color);
+        }
+
+        .alert-info i {
+            color: var(--primary-color);
+        }
+
+        .alert-success {
+            background: linear-gradient(45deg, rgba(40, 199, 111, 0.1), rgba(32, 201, 151, 0.1));
+            color: #28C76F;
+        }
+
+        .alert-success i {
+            color: #28C76F;
+        }
+
+        .alert-danger {
+            background: linear-gradient(45deg, rgba(255, 99, 99, 0.1), rgba(255, 155, 155, 0.1));
+            color: #dc3545;
+        }
+
+        .alert-danger i {
+            color: #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -975,93 +1021,100 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
                         Voting is currently closed.. Please come back soon to cast your vote.
                     </div>
                 <?php elseif ($electionStatus === 'Ended'): ?>
-                    <div class="results-container">
-                        <h2 class="text-center mb-4">Election Results</h2>
-                        <?php
-                        try {
-                            // Get positions with candidates and vote counts
-                            $sql = "SELECT 
-                                p.id, 
-                                p.position_name,
-                                p.max_votes,
-                                c.id as candidate_id,
-                                c.name as candidate_name,
-                                c.image_path,
-                                c.platform,
-                                (SELECT COUNT(*) FROM votes v 
-                                 WHERE v.candidate_id = c.id) as vote_count
-                            FROM positions p
-                            LEFT JOIN candidates c ON p.id = c.position_id
-                            ORDER BY p.id, vote_count DESC";
-                            
-                            $stmt = $pdo->prepare($sql);
-                            $stmt->execute();
-                            
-                            $results = [];
-                            
-                            while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                if(!isset($results[$row['id']])) {
-                                    $results[$row['id']] = [
-                                        'position_name' => $row['position_name'],
-                                        'max_votes' => $row['max_votes'],
-                                        'candidates' => []
-                                    ];
-                                }
+                    <?php if (!$isResultAuthenticated): ?>
+                        <div class="alert alert-info">
+                            <i class='bx bx-lock-alt me-2'></i>
+                            Election results are currently being verified. Please check back once they have been authenticated.
+                        </div>
+                    <?php else: ?>
+                        <div class="results-container">
+                            <h2 class="text-center mb-4">Election Results</h2>
+                            <?php
+                            try {
+                                // Get positions with candidates and vote counts
+                                $sql = "SELECT 
+                                    p.id, 
+                                    p.position_name,
+                                    p.max_votes,
+                                    c.id as candidate_id,
+                                    c.name as candidate_name,
+                                    c.image_path,
+                                    c.platform,
+                                    (SELECT COUNT(*) FROM votes v 
+                                     WHERE v.candidate_id = c.id) as vote_count
+                                FROM positions p
+                                LEFT JOIN candidates c ON p.id = c.position_id
+                                ORDER BY p.id, vote_count DESC";
                                 
-                                // Add all candidates with their vote counts
-                                if ($row['candidate_id']) {
-                                    $results[$row['id']]['candidates'][] = [
-                                        'name' => htmlspecialchars($row['candidate_name']),
-                                        'image_path' => $row['image_path'] ? '../' . $row['image_path'] : '../uploads/candidates/default.png',
-                                        'platform' => htmlspecialchars($row['platform']),
-                                        'votes' => (int)$row['vote_count']
-                                    ];
+                                $stmt = $pdo->prepare($sql);
+                                $stmt->execute();
+                                
+                                $results = [];
+                                
+                                while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                    if(!isset($results[$row['id']])) {
+                                        $results[$row['id']] = [
+                                            'position_name' => $row['position_name'],
+                                            'max_votes' => $row['max_votes'],
+                                            'candidates' => []
+                                        ];
+                                    }
+                                    
+                                    // Add all candidates with their vote counts
+                                    if ($row['candidate_id']) {
+                                        $results[$row['id']]['candidates'][] = [
+                                            'name' => htmlspecialchars($row['candidate_name']),
+                                            'image_path' => $row['image_path'] ? '../' . $row['image_path'] : '../uploads/candidates/default.png',
+                                            'platform' => htmlspecialchars($row['platform']),
+                                            'votes' => (int)$row['vote_count']
+                                        ];
+                                    }
                                 }
-                            }
 
-                            // Display results
-                            foreach($results as $position): ?>
-                                <div class="winner-card">
-                                    <h3 class="position-header"><?php echo htmlspecialchars($position['position_name']); ?></h3>
-                                    <?php 
-                                    // Sort candidates by vote count
-                                    usort($position['candidates'], function($a, $b) {
-                                        return $b['votes'] - $a['votes'];
-                                    });
+                                // Display results
+                                foreach($results as $position): ?>
+                                    <div class="winner-card">
+                                        <h3 class="position-header"><?php echo htmlspecialchars($position['position_name']); ?></h3>
+                                        <?php 
+                                        // Sort candidates by vote count
+                                        usort($position['candidates'], function($a, $b) {
+                                            return $b['votes'] - $a['votes'];
+                                        });
 
-                                    foreach($position['candidates'] as $index => $candidate): 
-                                        $isWinner = $index < $position['max_votes'];
-                                    ?>
-                                        <div class="winner-info">
-                                            <img src="<?php echo htmlspecialchars($candidate['image_path']); ?>" 
-                                                 class="winner-image" 
-                                                 alt="<?php echo htmlspecialchars($candidate['name']); ?>"
-                                                 onerror="this.src='../uploads/candidates/default.png'">
-                                            <div class="winner-details">
-                                                <h4>
-                                                    <?php echo htmlspecialchars($candidate['name']); ?>
-                                                    <?php if($isWinner): ?>
-                                                        <span class="winner-badge">
-                                                            <i class="fas fa-crown"></i> Winner
-                                                        </span>
-                                                    <?php endif; ?>
-                                                </h4>
-                                                <p class="vote-count">
-                                                    <i class="fas fa-vote-yea"></i>
-                                                    <?php echo $candidate['votes']; ?> vote<?php echo $candidate['votes'] != 1 ? 's' : ''; ?>
-                                                </p>
+                                        foreach($position['candidates'] as $index => $candidate): 
+                                            $isWinner = $index < $position['max_votes'];
+                                        ?>
+                                            <div class="winner-info">
+                                                <img src="<?php echo htmlspecialchars($candidate['image_path']); ?>" 
+                                                     class="winner-image" 
+                                                     alt="<?php echo htmlspecialchars($candidate['name']); ?>"
+                                                     onerror="this.src='../uploads/candidates/default.png'">
+                                                <div class="winner-details">
+                                                    <h4>
+                                                        <?php echo htmlspecialchars($candidate['name']); ?>
+                                                        <?php if($isWinner): ?>
+                                                            <span class="winner-badge">
+                                                                <i class="fas fa-crown"></i> Winner
+                                                            </span>
+                                                        <?php endif; ?>
+                                                    </h4>
+                                                    <p class="vote-count">
+                                                        <i class="fas fa-vote-yea"></i>
+                                                        <?php echo $candidate['votes']; ?> vote<?php echo $candidate['votes'] != 1 ? 's' : ''; ?>
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            <?php endforeach;
-                            
-                        } catch(PDOException $e) {
-                            error_log("Error fetching election results: " . $e->getMessage());
-                            echo '<div class="alert alert-danger">Error fetching election results: ' . htmlspecialchars($e->getMessage()) . '</div>';
-                        }
-                        ?>
-                    </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endforeach;
+                                
+                            } catch(PDOException $e) {
+                                error_log("Error fetching election results: " . $e->getMessage());
+                                echo '<div class="alert alert-danger">Error fetching election results: ' . htmlspecialchars($e->getMessage()) . '</div>';
+                            }
+                            ?>
+                        </div>
+                    <?php endif; ?>
                 <?php elseif ($hasVoted): ?>
                     <div class="alert alert-success">
                         <i class='bx bx-check-circle me-2'></i>

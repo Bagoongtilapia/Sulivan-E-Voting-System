@@ -9,13 +9,21 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['Super Ad
 }
 
 // Handle DELETE request
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete') {
+if (($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete') ||
+    ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete')) {
+    
+    $id = isset($_GET['id']) ? $_GET['id'] : (isset($_POST['voter_id']) ? $_POST['voter_id'] : null);
+    
+    if (!$id) {
+        header('Location: manage_voters.php?error=No voter ID provided');
+        exit();
+    }
+
     if (!in_array($_SESSION['user_role'], ['Super Admin', 'Sub-Admin'])) {
         header('Location: manage_voters.php?error=Unauthorized action: Only Admins can delete voters');
         exit();
     }
 
-    $id = $_GET['id'];
     try {
         // Start transaction
         $pdo->beginTransaction();
