@@ -1046,9 +1046,9 @@ error_log("Session data: " . print_r($_SESSION, true));
                     </div>
                 <?php elseif ($electionStatus === 'Ended'): ?>
                     <?php if (!$isResultAuthenticated): ?>
-                        <div class="alert alert-info">
+                        <div class="alert alert-info d-flex align-items-center">
                             <i class='bx bx-lock-alt me-2'></i>
-                            <div>
+                            <div class="d-flex align-items-center">
                                 <p class="mb-0">Election results are currently being verified. Please check back once they have been authenticated.</p>
                             </div>
                         </div>
