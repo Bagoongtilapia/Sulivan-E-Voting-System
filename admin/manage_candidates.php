@@ -519,16 +519,16 @@ if (!file_exists($uploadDir)) {
                                      alt="<?php echo htmlspecialchars($candidate['name']); ?>" 
                                      class="candidate-image">
                                 <h5 class="candidate-name"><?php echo htmlspecialchars($candidate['name']); ?></h5>
-                                <span class="position-badge"><?php echo htmlspecialchars($candidate['position_name']); ?></span>
+                                <span class="position-badge" data-position-id="<?php echo $candidate['position_id']; ?>"><?php echo htmlspecialchars($candidate['position_name']); ?></span>
                                 <div class="platform-text">
                                     <?php echo nl2br(htmlspecialchars($candidate['platform'])); ?>
                                 </div>
                                 <div class="action-buttons">
-                                    <button class="btn btn-edit" data-id="<?php echo $candidate['id']; ?>" data-name="<?php echo $candidate['name']; ?>" data-position="<?php echo $candidate['position_name']; ?>" data-platform="<?php echo $candidate['platform']; ?>">
+                                    <button class="btn btn-edit" data-id="<?php echo $candidate['id']; ?>" data-position-id="<?php echo $candidate['position_id']; ?>" data-platform="<?php echo htmlspecialchars($candidate['platform']); ?>">
                                         <i class='bx bx-edit'></i> Edit
                                     </button>
                                     <?php if ($_SESSION['user_role'] === 'Super Admin'): ?>
-                                        <button class="btn btn-remove" data-id="<?php echo $candidate['id']; ?>" data-name="<?php echo $candidate['name']; ?>">
+                                        <button class="btn btn-remove" data-id="<?php echo $candidate['id']; ?>" data-name="<?php echo htmlspecialchars($candidate['name']); ?>">
                                             <i class='bx bx-trash'></i> Remove
                                         </button>
                                     <?php endif; ?>
@@ -552,7 +552,7 @@ if (!file_exists($uploadDir)) {
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="process_candidate.php" method="POST" enctype="multipart/form-data">
+                <form action="process_candidate.php" method="POST" enctype="multipart/form-data" id="addCandidateForm">
                     <div class="modal-body">
                         <div class="text-center mb-4">
                             <div class="image-preview-wrapper">
@@ -625,7 +625,7 @@ if (!file_exists($uploadDir)) {
                     <h5 class="modal-title">Edit Candidate</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form id="editCandidateForm" action="edit_candidate.php" method="POST" enctype="multipart/form-data">
+                <form id="editCandidateForm" action="process_candidate.php" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="edit">
                     <input type="hidden" name="candidate_id" id="editCandidateId">
                     <div class="modal-body">
@@ -664,13 +664,12 @@ if (!file_exists($uploadDir)) {
             // Edit candidate functionality
             $('.btn-edit').click(function() {
                 const id = $(this).data('id');
-                const name = $(this).data('name');
-                const position = $(this).data('position');
+                const position_id = $(this).data('position-id');
                 const platform = $(this).data('platform');
                 
                 // Set values in edit modal
                 $('#editCandidateId').val(id);
-                $('#editPosition').val(position);
+                $('#editPosition').val(position_id);
                 $('#editPlatform').val(platform);
                 
                 // Show edit modal
@@ -684,20 +683,38 @@ if (!file_exists($uploadDir)) {
                 const formData = new FormData(this);
                 
                 $.ajax({
-                    url: 'edit_candidate.php',
+                    url: $(this).attr('action'),
                     type: 'POST',
                     data: formData,
                     processData: false,
                     contentType: false,
                     success: function(response) {
                         if (response.success) {
-                            location.reload();
+                            // Remove any existing success messages
+                            $('.alert-success').remove();
+                            
+                            // Show success message
+                            const alertHtml = `
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    Candidate updated successfully
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>`;
+                            $('.section-header').after(alertHtml);
+                            
+                            // Reset form and close modal
+                            $('#editCandidateForm')[0].reset();
+                            $('#editCandidateModal').modal('hide');
+                            
+                            // Reload the page after a short delay to show the updated candidate
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
                         } else {
-                            alert('Error updating candidate: ' + response.message);
+                            alert('Error updating candidate: ' + (response.message || 'Unknown error'));
                         }
                     },
-                    error: function() {
-                        alert('Error updating candidate. Please try again.');
+                    error: function(xhr, status, error) {
+                        alert('Error updating candidate: ' + error);
                     }
                 });
             });
@@ -728,39 +745,104 @@ if (!file_exists($uploadDir)) {
                         },
                         success: function(response) {
                             if (response.success) {
-                                location.reload();
+                                // Remove any existing success messages
+                                $('.alert-success').remove();
+                                
+                                // Show success message
+                                const alertHtml = `
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        Candidate removed successfully
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>`;
+                                $('.section-header').after(alertHtml);
+                                
+                                // Remove the candidate card with animation
+                                const cardElement = $(`button[data-id="${candidateToDelete}"]`).closest('.col-md-4');
+                                cardElement.fadeOut(400, function() {
+                                    $(this).remove();
+                                });
                             } else {
-                                alert('Error deleting candidate: ' + response.message);
+                                alert('Error removing candidate: ' + response.message);
                             }
                         },
                         error: function() {
-                            alert('Error deleting candidate. Please try again.');
+                            alert('Error removing candidate. Please try again.');
                         }
                     });
                 }
                 $('#deleteCandidateModal').modal('hide');
             });
-        });
 
-        function previewImage(input) {
-            const previewIcon = document.querySelector('.image-preview-wrapper i');
-            const previewText = document.querySelector('.image-preview-text');
-            
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('imagePreview').src = e.target.result;
-                    // Hide the icon and text when an image is selected
-                    previewIcon.style.display = 'none';
-                    previewText.style.display = 'none';
+            // Clear any existing success messages when opening add or delete modals
+            $('#addCandidateModal, #deleteCandidateModal').on('show.bs.modal', function () {
+                $('.alert-success').remove();
+            });
+
+            // Handle add candidate form submission
+            $('#addCandidateForm').submit(function(e) {
+                e.preventDefault();
+                
+                // Remove any existing success messages
+                $('.alert-success').remove();
+                
+                var formData = new FormData(this);
+                
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            const alertHtml = `
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    Candidate added successfully
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>`;
+                            $('.section-header').after(alertHtml);
+                            
+                            // Reset form and close modal
+                            $('#addCandidateForm')[0].reset();
+                            $('#addCandidateModal').modal('hide');
+                            
+                            // Reload the page after a short delay to show the new candidate
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            alert('Error adding candidate: ' + (response.message || 'Unknown error'));
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Error adding candidate: ' + error);
+                    }
+                });
+
+                $('#addCandidateModal').modal('hide');
+            });
+
+            function previewImage(input) {
+                const previewIcon = document.querySelector('.image-preview-wrapper i');
+                const previewText = document.querySelector('.image-preview-text');
+                
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('imagePreview').src = e.target.result;
+                        // Hide the icon and text when an image is selected
+                        previewIcon.style.display = 'none';
+                        previewText.style.display = 'none';
+                    }
+                    reader.readAsDataURL(input.files[0]);
+                } else {
+                    // Show the icon and text when no image is selected
+                    previewIcon.style.display = 'block';
+                    previewText.style.display = 'block';
                 }
-                reader.readAsDataURL(input.files[0]);
-            } else {
-                // Show the icon and text when no image is selected
-                previewIcon.style.display = 'block';
-                previewText.style.display = 'block';
             }
-        }
+        });
     </script>
 </body>
 </html>

@@ -240,7 +240,7 @@ error_log("Session data: " . print_r($_SESSION, true));
             padding: -10px;
             border: 2px solid rgba(255, 255, 255, 0.8);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s ease;
         }
 
         .navbar-brand:hover img {
@@ -285,21 +285,13 @@ error_log("Session data: " . print_r($_SESSION, true));
 
         .position-title {
             color: var(--primary-color);
-            font-size: 1.5rem;
+            font-size: 26px;
             font-weight: 600;
             margin-bottom: 30px;
             padding-bottom: 15px;
             border-bottom: 2px solid var(--primary-light);
             text-align: center;
         }
-
-        .candidates-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
         .candidate-card {
             border: 1px solid #dee2e6;
             border-radius: 0.25rem;
@@ -312,7 +304,6 @@ error_log("Session data: " . print_r($_SESSION, true));
             cursor: pointer;
             position: relative;
         }
-
         .candidate-card:hover {
             box-shadow: 0 1px 6px rgba(0,0,0,0.2);
         }
@@ -321,27 +312,6 @@ error_log("Session data: " . print_r($_SESSION, true));
             border: 2px solid var(--primary-color);
             background-color: rgba(57, 60, 178, 0.05);
         }
-
-        .candidate-card.selected::after {
-            content: '\f00c';
-            font-family: 'Font Awesome 5 Free';
-            font-weight: 900;
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background: var(--primary-color);
-            color: white;
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            border: 2px solid white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-
         .form-check-input {
             display: none;
         }
@@ -354,7 +324,7 @@ error_log("Session data: " . print_r($_SESSION, true));
         }
 
         .details-top {
-            margin-bottom: 10px;
+            margin-bottom: 30px;
         }
 
         .details-bottom {
@@ -370,25 +340,23 @@ error_log("Session data: " . print_r($_SESSION, true));
             color: white;
             padding: 6px 12px;
             border-radius: 3px;
-            font-size: 0.875rem;
+            font-size: 1.05rem;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 10px;
             transition: all 0.2s ease;
         }
-
         .btn-platform:hover {
             background: var(--primary-light);
             color: white;
         }
-
         .btn-platform i {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
-
         .candidate-name {
             color: var(--primary-color);
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            margin-top: 10px;
             margin-bottom: 0.5rem;
             font-weight: 600;
         }
@@ -405,37 +373,25 @@ error_log("Session data: " . print_r($_SESSION, true));
         .candidate-position i {
             color: var(--primary-light);
         }
-
         .btn-vote {
             background: var(--primary-color);
             border: none;
             color: white;
             padding: 10px 20px;
-            border-radius: 3px;
+            border-radius: 15px;
             font-size: 1rem;
             font-weight: 600;
             box-shadow: none;
             transition: all 0.2s ease;
             margin-top: 30px;
         }
-
         .btn-vote:hover {
             background: var(--primary-light);
             color: white;
         }
-
         .voting-section {
             margin-bottom: 2rem;
         }
-
-        .position-title {
-            color: var(--primary-color);
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--primary-light);
-        }
-
         .candidates-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -450,74 +406,12 @@ error_log("Session data: " . print_r($_SESSION, true));
             overflow: hidden;
             border: 2px solid var(--primary-color);
         }
-
         .candidate-image {
             border-radius: 50%;
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-
-        .modal-content {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(57, 60, 178, 0.15);
-        }
-
-        .modal-header {
-            background: var(--gradient-primary);
-            color: white;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-            border-bottom: none;
-            padding: 1.25rem;
-        }
-
-        .modal-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .modal-footer {
-            background-color: #f4f6f9;
-            border-bottom-left-radius: 15px;
-            border-bottom-right-radius: 15px;
-            padding: 1rem 1.5rem;
-        }
-
-        .btn-default {
-            background-color: #E8E9FF;
-            color: var(--primary-color);
-            border: none;
-        }
-
-        .btn-default:hover {
-            background-color: #D8D9FF;
-            color: var(--primary-dark);
-        }
-
-        .candidate-platform-header {
-            color: var(--primary-color);
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--accent-color);
-        }
-
-        .platform-content {
-            color: #4A4B57;
-            line-height: 1.6;
-            font-size: 1rem;
-            padding: 0.5rem;
-        }
-        
         .results-container {
             padding: 20px;
         }
@@ -668,7 +562,7 @@ error_log("Session data: " . print_r($_SESSION, true));
         }
 
         .preview-modal .modal-header {
-            background: var(--gradient-primary);
+            background: var(--primary-color);
             color: white;
             border-radius: 20px 20px 0 0;
             padding: 1.75rem;
@@ -726,7 +620,7 @@ error_log("Session data: " . print_r($_SESSION, true));
         }
 
         .preview-notice i {
-            font-size: 1.5rem;
+            font-size: 2rem;
             color: #f4b619;
         }
 
@@ -761,7 +655,6 @@ error_log("Session data: " . print_r($_SESSION, true));
         .preview-position h4 {
             color: var(--primary-color);
             font-size: 1.2rem;
-            margin-bottom: 1.25rem;
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -778,7 +671,7 @@ error_log("Session data: " . print_r($_SESSION, true));
             border-radius: 20px;
         }
 
-        .preview-candidates {
+        .preview-candidate {
             padding-left: 0;
         }
 
@@ -832,26 +725,6 @@ error_log("Session data: " . print_r($_SESSION, true));
             margin-top: 2rem;
             padding-top: 1.5rem;
             border-top: 2px solid #eef0ff;
-        }
-
-        .btn-modify {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 0.9rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .btn-modify:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
-            color: white;
         }
 
         .btn-confirm {
@@ -919,13 +792,6 @@ error_log("Session data: " . print_r($_SESSION, true));
         .modal-header {
             padding: 1.5rem 1.5rem 0;
         }
-        
-        .btn-close {
-            opacity: 0.8;
-            transition: all 0.3s ease;
-            background-color: transparent;
-        }
-
         /* Animation for modal */
         .modal.fade .modal-dialog {
             transform: scale(0.95);
@@ -935,48 +801,200 @@ error_log("Session data: " . print_r($_SESSION, true));
         .modal.show .modal-dialog {
             transform: scale(1);
         }
-        
-        /* Alert Styles */
-        .alert {
+       
+        /* Platform Modal Styles */
+        .platform-modal .modal-dialog {
+            max-width: 400px;
+            margin: 1.5rem auto;
+        }
+
+        .platform-modal .modal-content {
             border: none;
+            border-radius: 16px;
+            background: white;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(57, 60, 178, 0.15);
+        }
+
+        .platform-modal .modal-body {
+            padding: 0;
+        }
+
+        .platform-modal .modal-header {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            z-index: 10;
+            border: none;
+            padding: 0;
+            background: transparent;
+        }
+
+        .platform-modal .btn-close {
+            background-color: transparent;
+            width: 32px;
+            height: 32px;
+            padding: 8px;
+            opacity: 0.9;
+            filter: invert(1) brightness(200%);
+            transition: all 0.2s ease;
+        }
+
+        .platform-modal .btn-close:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .platform-modal .candidate-section {
+            background: var(--primary-color);
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .platform-modal .candidate-section::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(to top, rgba(0,0,0,0.1), transparent);
+        }
+
+        .platform-modal .candidate-image-container {
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 1.25rem;
             border-radius: 12px;
-            padding: 20px;
+            overflow: hidden;
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+            background: white;
+            transform: rotate(-3deg);
+            transition: transform 0.3s ease;
+        }
+
+        .platform-modal .candidate-image-container:hover {
+            transform: rotate(0deg);
+        }
+
+        .platform-modal .candidate-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .platform-modal .candidate-image.error {
+            opacity: 0.7;
+            filter: grayscale(1);
+        }
+
+        .platform-modal .candidate-name {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .platform-modal .error-message {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
+            background: rgba(220, 53, 69, 0.1);
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            backdrop-filter: blur(4px);
+        }
+
+        .platform-modal .error-message.show {
+            display: inline-block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .platform-modal .platform-content {
+            padding: 1.75rem;
+            background: white;
+        }
+
+        .platform-modal .platform-label {
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            gap: 0.5rem;
+            opacity: 0.9;
         }
 
-        .alert i {
-            font-size: 24px;
-            margin-right: 15px;
+        .platform-modal .platform-label::before,
+        .platform-modal .platform-label::after {
+            content: '';
+            height: 1px;
+            background: currentColor;
+            flex: 1;
+            opacity: 0.3;
         }
 
-        .alert-info {
-            background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            color: var(--primary-color);
+        .platform-modal .platform-text {
+            color: #2c3e50;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            margin: 0;
+            white-space: pre-line;
         }
 
-        .alert-info i {
-            color: var(--primary-color);
+        .platform-modal .platform-text:empty::before {
+            content: 'No platform information available.';
+            color: #6c757d;
+            font-style: italic;
+            display: block;
+            text-align: center;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
         }
 
-        .alert-success {
-            background: linear-gradient(45deg, rgba(40, 199, 111, 0.1), rgba(32, 201, 151, 0.1));
-            color: #28C76F;
-        }
-
-        .alert-success i {
-            color: #28C76F;
-        }
-
-        .alert-danger {
-            background: linear-gradient(45deg, rgba(255, 99, 99, 0.1), rgba(255, 155, 155, 0.1));
+        .platform-modal .error-state {
+            padding: 3rem 2rem;
+            text-align: center;
             color: #dc3545;
+            background: #fff;
         }
 
-        .alert-danger i {
-            color: #dc3545;
+        .platform-modal .error-state i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        .platform-modal .error-state h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .platform-modal .error-state p {
+            color: #6c757d;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -1152,11 +1170,13 @@ error_log("Session data: " . print_r($_SESSION, true));
                                                         </p>
                                                     </div>
                                                     <div class="details-bottom">
-                                                        <button type="button" class="btn btn-platform" 
+                                                        <button type="button" 
+                                                                class="btn btn-platform"
                                                                 data-name="<?php echo htmlspecialchars($candidate['name']); ?>"
-                                                                data-platform="<?php echo htmlspecialchars($candidate['platform']); ?>"
                                                                 data-position="<?php echo htmlspecialchars($position['name']); ?>"
-                                                                onclick="viewPlatform(this)">
+                                                                data-platform="<?php echo htmlspecialchars($candidate['platform']); ?>"
+                                                                data-image="<?php echo htmlspecialchars($candidate['image_url']); ?>"
+                                                                onclick="showPlatform(this)">
                                                             <i class='fas fa-book'></i>
                                                             Platform
                                                         </button>
@@ -1185,32 +1205,23 @@ error_log("Session data: " . print_r($_SESSION, true));
     </div>
 
     <!-- Platform Modal -->
-    <div class="modal fade" id="platformModal" tabindex="-1" role="dialog" aria-labelledby="platformModalLabel" aria-hidden="true">
+    <div class="modal fade platform-modal" id="platformModal" tabindex="-1" role="dialog" aria-labelledby="platformModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header platform-header-bg">
-                    <div class="modal-title-container">
-                        <h4 class="modal-title" id="platformModalLabel">
-                            <span id="modalPositionName" class="position-title"></span>
-                        </h4>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-0">
-                    <div class="platform-modal-content">
-                        <div class="candidate-profile">
-                            <h3 id="modalCandidateName" class="candidate-name-lg"></h3>
+                <div class="modal-body">
+                    <div class="candidate-section">
+                        <div class="candidate-image-container">
+                            <img id="platformCandidateImage" src="" alt="Candidate" class="candidate-image">
                         </div>
-                        <div class="platform-content">
-                            <div class="platform-section">
-                                <h4 class="platform-section-title">
-                                    <i class='bx bx-target-lock me-2'></i>Platform & Vision
-                                </h4>
-                                <div class="platform-text-wrapper">
-                                    <p id="modalPlatform" class="platform-text"></p>
-                                </div>
-                            </div>
-                        </div>
+                        <h3 id="candidateName" class="candidate-name"></h3>
+                        <div id="imageError" class="error-message">Unable to load image</div>
+                    </div>
+                    <div class="platform-content">
+                        <div class="platform-label">Campaign Platform</div>
+                        <p id="platformText" class="platform-text"></p>
                     </div>
                 </div>
             </div>
@@ -1255,22 +1266,51 @@ error_log("Session data: " . print_r($_SESSION, true));
         var platformModal = new bootstrap.Modal(document.getElementById('platformModal'));
         var previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
         
-        function viewPlatform(button) {
-            // Prevent the card selection
-            event.stopPropagation();
-            
-            // Get data from button attributes
-            const name = button.getAttribute('data-name');
-            const platform = button.getAttribute('data-platform');
-            const position = button.getAttribute('data-position');
-            
-            // Update modal content
-            document.getElementById('modalCandidateName').textContent = name;
-            document.getElementById('modalPositionName').textContent = position;
-            document.getElementById('modalPlatform').textContent = platform || 'No platform information available.';
-            
-            // Show the modal
-            platformModal.show();
+        // Function to show platform modal
+        function showPlatform(button) {
+            try {
+                const name = button.getAttribute('data-name');
+                const platform = button.getAttribute('data-platform');
+                const imageUrl = button.getAttribute('data-image');
+                
+                // Update modal content
+                document.getElementById('candidateName').textContent = name || 'Unknown Candidate';
+                document.getElementById('platformText').textContent = platform || '';
+                
+                // Handle image loading with error state
+                const imgElement = document.getElementById('platformCandidateImage');
+                const errorElement = document.getElementById('imageError');
+                
+                imgElement.onerror = function() {
+                    this.src = '../uploads/candidates/default.png';
+                    this.classList.add('error');
+                    errorElement.classList.add('show');
+                };
+                
+                imgElement.onload = function() {
+                    this.classList.remove('error');
+                    errorElement.classList.remove('show');
+                };
+                
+                // Reset states before loading new image
+                imgElement.classList.remove('error');
+                errorElement.classList.remove('show');
+                imgElement.src = imageUrl;
+                
+                // Show modal
+                platformModal.show();
+            } catch (error) {
+                console.error('Error showing platform:', error);
+                const modalBody = document.querySelector('.platform-modal .modal-body');
+                modalBody.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h4>Unable to Load Information</h4>
+                        <p>There was a problem loading the candidate's information. Please try again later.</p>
+                    </div>
+                `;
+                platformModal.show();
+            }
         }
 
         function previewVotes() {

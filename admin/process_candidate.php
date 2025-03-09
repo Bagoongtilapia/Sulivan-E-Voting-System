@@ -2,50 +2,45 @@
 session_start();
 require_once '../config/database.php';
 
-// Check if user is logged in and is an admin
+// Enable error logging
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', '../logs/php_errors.log');
+
+// Check if user is logged in and has appropriate role
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['Super Admin', 'Sub-Admin'])) {
-    header('Location: ../index.php');
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
     exit();
 }
 
 // Function to handle image upload
 function handleImageUpload($file) {
-    $targetDir = '../uploads/candidates/';
-    if (!file_exists($targetDir)) {
-        mkdir($targetDir, 0777, true);
+    if (!isset($file) || $file['error'] !== UPLOAD_ERR_OK) {
+        return '';
+    }
+
+    $uploadDir = '../uploads/candidates/';
+    if (!file_exists($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
     }
 
     $fileName = time() . '_' . basename($file['name']);
-    $targetPath = $targetDir . $fileName;
-    $imageFileType = strtolower(pathinfo($targetPath, PATHINFO_EXTENSION));
-
-    // Check if image file is a actual image or fake image
-    $check = getimagesize($file['tmp_name']);
-    if ($check === false) {
-        throw new Exception('File is not an image.');
-    }
-
-    // Check file size (5MB max)
-    if ($file['size'] > 5000000) {
-        throw new Exception('File is too large. Maximum size is 5MB.');
-    }
-
-    // Allow certain file formats
-    if (!in_array($imageFileType, ['jpg', 'jpeg', 'png', 'gif'])) {
-        throw new Exception('Only JPG, JPEG, PNG & GIF files are allowed.');
-    }
+    $targetPath = $uploadDir . $fileName;
 
     if (move_uploaded_file($file['tmp_name'], $targetPath)) {
         return 'uploads/candidates/' . $fileName;
     }
 
-    throw new Exception('Failed to upload image.');
+    throw new Exception('Failed to upload image');
 }
 
 // Handle DELETE request
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete') {
     if ($_SESSION['user_role'] !== 'Super Admin') {
-        header('Location: manage_candidates.php?error=Only Super Admin can delete candidates');
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Only Super Admin can delete candidates']);
         exit();
     }
 
@@ -68,9 +63,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
             }
         }
 
-        header('Location: manage_candidates.php?success=Candidate removed successfully');
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true]);
     } catch (PDOException $e) {
-        header('Location: manage_candidates.php?error=Failed to remove candidate');
+        // Log the error
+        error_log("Error in process_candidate.php: " . $e->getMessage());
+        
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => false, 
+            'message' => 'An error occurred while deleting the candidate: ' . $e->getMessage()
+        ]);
     }
     exit();
 }
@@ -80,9 +83,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if (isset($_POST['action']) && $_POST['action'] === 'edit') {
             // Edit existing candidate
+            if (!isset($_POST['candidate_id']) || !isset($_POST['position_id'])) {
+                throw new Exception('Missing required fields');
+            }
+
             $candidate_id = $_POST['candidate_id'];
             $position_id = $_POST['position_id'];
-            $platform = $_POST['platform'];
+            $platform = $_POST['platform'] ?? '';
+
+            // Verify candidate exists
+            $stmt = $pdo->prepare("SELECT * FROM candidates WHERE id = ?");
+            $stmt->execute([$candidate_id]);
+            if (!$stmt->fetch()) {
+                throw new Exception('Candidate not found');
+            }
 
             if (!empty($_FILES['image']['name'])) {
                 // Get old image path
@@ -93,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Upload new image
                 $imagePath = handleImageUpload($_FILES['image']);
 
-                // Delete old image
+                // Delete old image if it exists
                 if (!empty($oldImage['image_path'])) {
                     $oldImagePath = '../' . $oldImage['image_path'];
                     if (file_exists($oldImagePath)) {
@@ -110,32 +124,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([$position_id, $platform, $candidate_id]);
             }
 
-            header('Location: manage_candidates.php?success=Candidate updated successfully');
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true]);
         } else {
             // Add new candidate
+            if (!isset($_POST['name']) || !isset($_POST['position_id'])) {
+                throw new Exception('Missing required fields');
+            }
+
             $name = trim($_POST['name']);
             $position_id = $_POST['position_id'];
-            $platform = $_POST['platform'];
+            $platform = $_POST['platform'] ?? '';
 
             if (empty($name)) {
                 throw new Exception('Candidate name is required');
             }
 
             // Handle image upload
-            $imagePath = handleImageUpload($_FILES['image']);
+            $imagePath = '';
+            if (isset($_FILES['image'])) {
+                $imagePath = handleImageUpload($_FILES['image']);
+            }
 
-            // Insert the candidate directly
+            // Insert the candidate
             $stmt = $pdo->prepare("INSERT INTO candidates (name, position_id, platform, image_path) VALUES (?, ?, ?, ?)");
             $stmt->execute([$name, $position_id, $platform, $imagePath]);
 
-            header('Location: manage_candidates.php?success=Candidate added successfully');
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true]);
         }
     } catch (Exception $e) {
-        header('Location: manage_candidates.php?error=' . urlencode($e->getMessage()));
+        // Log the error
+        error_log("Error in process_candidate.php: " . $e->getMessage());
+        
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => false, 
+            'message' => 'An error occurred while processing the candidate: ' . $e->getMessage()
+        ]);
     }
     exit();
 }
 
-header('Location: manage_candidates.php');
+header('Content-Type: application/json');
+echo json_encode(['success' => false, 'message' => 'Invalid request method']);
 exit();
-?>
