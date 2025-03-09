@@ -59,9 +59,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // Update the user's voted status
+        $updateStmt = $pdo->prepare("UPDATE users SET voted = 1 WHERE id = ?");
+        $updateStmt->execute([$_SESSION['user_id']]);
+
         // Commit transaction
         $pdo->commit();
-        header('Location: dashboard.php?success=Your vote has been recorded');
+        
+        // Set session variable to indicate the user has voted
+        $_SESSION['has_voted'] = true;
+        
+        header('Location: dashboard.php');
         exit();
 
     } catch (Exception $e) {

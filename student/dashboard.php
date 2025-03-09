@@ -49,82 +49,53 @@ if(isset($_POST['vote'])) {
     }
 }
 
-// Display message if exists
-if(isset($_SESSION['message'])) {
-    $messageClass = ($_SESSION['message']['type'] === 'success') ? 'alert-success' : 'alert-danger';
-    echo '<div class="alert ' . $messageClass . '">' . htmlspecialchars($_SESSION['message']['text']) . '</div>';
-    unset($_SESSION['message']);
-}
-
-// Display vote message if exists
-if(isset($_SESSION['vote_message'])) {
-    echo '<div class="alert alert-info">' . htmlspecialchars($_SESSION['vote_message']) . '</div>';
-    unset($_SESSION['vote_message']);
-}
-
-// Display status messages
-if(isset($_GET['status'])) {
-    if($_GET['status'] === 'success') {
-        echo '<div class="alert alert-success">Your vote has been recorded successfully!</div>';
-    } else if($_GET['status'] === 'error') {
-        echo '<div class="alert alert-danger">An error occurred while recording your vote. Please try again.</div>';
-    }
-}
-
-// Check if password needs to be changed
-$stmt = $pdo->prepare("SELECT password_changed FROM users WHERE id = ?");
-$stmt->execute([$_SESSION['user_id']]);
-$user = $stmt->fetch();
-
-// Check election status and authentication
+// Get election status and result authentication status
 try {
-    $stmt = $pdo->query("SELECT status, is_result_authenticated FROM election_status ORDER BY id DESC LIMIT 1");
+    $stmt = $pdo->query("SELECT status, is_result_authenticated FROM election_status WHERE id = (SELECT MAX(id) FROM election_status)");
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $electionStatus = $result['status'] ?? 'Pre-Voting';
-    $isResultAuthenticated = $result['is_result_authenticated'] ?? false;
+    $isResultAuthenticated = (bool)($result['is_result_authenticated'] ?? false);
 } catch (PDOException $e) {
-    error_log("Error fetching election status: " . $e->getMessage());
-    $error = "Error fetching election status";
-    $electionStatus = 'Unknown';
+    error_log("Error getting election status: " . $e->getMessage());
+    $electionStatus = 'Pre-Voting';
     $isResultAuthenticated = false;
 }
 
-// Check if user has already voted
+// Check if user has already voted - consolidated check
 try {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM votes WHERE user_id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-    $hasVoted = $stmt->fetchColumn() > 0;
-} catch (PDOException $e) {
-    error_log("Error checking vote status: " . $e->getMessage());
-    $error = "Error checking vote status";
-    $hasVoted = false;
-}
-
-// If password hasn't been changed and it's pre-voting period, redirect to change password
-if (!$user['password_changed'] && $electionStatus === 'Pre-Voting') {
-    header('Location: change_password.php');
-    exit();
-}
-
-// Debug information
-error_log("Session data: " . print_r($_SESSION, true));
-
-// Get student's voting status
-try {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM votes WHERE user_id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-    $hasVoted = $stmt->fetchColumn() > 0;
-    error_log("Has voted status for student {$_SESSION['user_id']}: " . ($hasVoted ? 'Yes' : 'No'));
+    // First check the session variable for immediate feedback after voting
+    if (isset($_SESSION['has_voted']) && $_SESSION['has_voted']) {
+        $hasVoted = true;
+    } else {
+        // Check the database for voted status
+        $stmt = $pdo->prepare("SELECT voted FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $hasVoted = (bool)$stmt->fetchColumn();
+        
+        // Update session if user has voted
+        if ($hasVoted) {
+            $_SESSION['has_voted'] = true;
+        }
+    }
 } catch (PDOException $e) {
     error_log("Error checking voting status: " . $e->getMessage());
-    $error = "Error checking voting status";
     $hasVoted = false;
 }
-// Check for success/error messages from URL parameters
-$success = isset($_GET['success']) ? $_GET['success'] : null;
-$error = isset($_GET['error']) ? $_GET['error'] : null;
 
-// Get positions and candidates if in voting phase
+// Clear any existing messages if not in voting phase
+if ($electionStatus !== 'Voting') {
+    if (isset($_SESSION['message'])) {
+        unset($_SESSION['message']);
+    }
+    if (isset($_SESSION['vote_message'])) {
+        unset($_SESSION['vote_message']);
+    }
+    if (isset($_SESSION['has_voted'])) {
+        unset($_SESSION['has_voted']);
+    }
+}
+
+// Get positions and candidates if in voting phase and user hasn't voted
 $positions = [];
 if ($electionStatus === 'Voting' && !$hasVoted) {
     try {
@@ -169,6 +140,45 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
         $error = "Error fetching positions and candidates";
     }
 }
+
+// Consolidated message display function
+function displayAlert($type, $message) {
+    $messageClass = ($type === 'success') ? 'alert-success' : 
+                   (($type === 'info') ? 'alert-info' : 'alert-danger');
+    $icon = ($type === 'success') ? 'bx-check-circle' :
+            (($type === 'info') ? 'bx-info-circle' : 'bx-error-circle');
+    echo '<div class="alert ' . $messageClass . '"><i class="bx ' . $icon . ' me-2"></i>' . htmlspecialchars($message) . '</div>';
+}
+
+// Display messages using the consolidated function
+if(isset($_SESSION['message'])) {
+    // Only display session message if user hasn't voted
+    if (!$hasVoted) {
+        displayAlert($_SESSION['message']['type'], $_SESSION['message']['text']);
+    }
+    unset($_SESSION['message']);
+}
+
+if(isset($_SESSION['vote_message'])) {
+    if (!$hasVoted) {
+        displayAlert('info', $_SESSION['vote_message']);
+    }
+    unset($_SESSION['vote_message']);
+}
+
+// Check if password needs to be changed
+$stmt = $pdo->prepare("SELECT password_changed FROM users WHERE id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$user = $stmt->fetch();
+
+// If password hasn't been changed and it's pre-voting period, redirect to change password
+if (!$user['password_changed'] && $electionStatus === 'Pre-Voting') {
+    header('Location: change_password.php');
+    exit();
+}
+
+// Debug information
+error_log("Session data: " . print_r($_SESSION, true));
 
 ?>
 
@@ -1006,25 +1016,23 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
                     <div class="status-header">
                         <h3>Election Status</h3>
                         <div class="status-indicator <?php echo strtolower($electionStatus); ?>">
-                            <i class="bx <?php 
-                                echo $electionStatus === 'Voting' ? 'bx-check-circle' : 
-                                    ($electionStatus === 'Ended' ? 'bx-x-circle' : 'bx-time'); 
-                            ?>"></i>
                             <?php echo $electionStatus; ?>
                         </div>
                     </div>
                 </div>
 
-                <?php if ($electionStatus === 'Pre-Voting'): ?>
-                    <div class="alert alert-warning">
-                        <i class='bx bx-time-five me-2'></i>
-                        Voting is currently closed.. Please come back soon to cast your vote.
+                <?php if ($hasVoted && $electionStatus === 'Voting'): ?>
+                    <div class="alert alert-success">
+                        <i class='bx bx-check-circle me-2'></i>
+                        Thank you for voting! Your vote has been recorded.
                     </div>
                 <?php elseif ($electionStatus === 'Ended'): ?>
                     <?php if (!$isResultAuthenticated): ?>
                         <div class="alert alert-info">
                             <i class='bx bx-lock-alt me-2'></i>
-                            Election results are currently being verified. Please check back once they have been authenticated.
+                            <div>
+                                <p class="mb-0">Election results are currently being verified. Please check back once they have been authenticated.</p>
+                            </div>
                         </div>
                     <?php else: ?>
                         <div class="results-container">
@@ -1115,10 +1123,10 @@ if ($electionStatus === 'Voting' && !$hasVoted) {
                             ?>
                         </div>
                     <?php endif; ?>
-                <?php elseif ($hasVoted): ?>
-                    <div class="alert alert-success">
-                        <i class='bx bx-check-circle me-2'></i>
-                        Thank you for voting! Your vote has been recorded.
+                <?php elseif ($electionStatus === 'Pre-Voting'): ?>
+                    <div class="alert alert-warning">
+                        <i class='bx bx-time-five me-2'></i>
+                        Voting is currently closed.. Please come back soon to cast your vote.
                     </div>
                 <?php elseif ($electionStatus === 'Voting'): ?>
                     <form action="cast_vote.php" method="POST" id="votingForm" onsubmit="return false;">
