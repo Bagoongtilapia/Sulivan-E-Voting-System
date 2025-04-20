@@ -69,22 +69,34 @@ if (($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['ac
 
         if ($electionStatus === 'Pre-Voting') {
             try {
-                // First, remove their votes (if any)
+                // Make sure no transaction is active before starting a new one
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                
+                // Start transaction
+                $pdo->beginTransaction();
+
+                // 1. First, delete from otp_codes table
+                $stmt = $pdo->prepare("DELETE FROM otp_codes WHERE user_id = ?");
+                $stmt->execute([$id]);
+                
+                // 2. Delete from votes table
                 $stmt = $pdo->prepare("DELETE FROM votes WHERE student_id = ?");
                 $stmt->execute([$id]);
                 
-                // Get the candidate name from users table
+                // 3. Get the user's name before deletion
                 $stmt = $pdo->prepare("SELECT name FROM users WHERE id = ?");
                 $stmt->execute([$id]);
                 $userName = $stmt->fetchColumn();
                 
-                // Then remove them from candidates if they exist (matching by name)
+                // 4. Delete from candidates table if they are a candidate
                 if ($userName) {
                     $stmt = $pdo->prepare("DELETE FROM candidates WHERE name = ?");
                     $stmt->execute([$userName]);
                 }
                 
-                // Finally, delete the user account
+                // 5. Finally, delete the user
                 $stmt = $pdo->prepare("DELETE FROM users WHERE id = ? AND role = 'Student'");
                 if (!$stmt->execute([$id])) {
                     throw new PDOException("Failed to delete user record");
@@ -95,14 +107,18 @@ if (($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['ac
                 header('Location: manage_voters.php?success=Voter successfully deleted from the system');
                 exit();
             } catch (PDOException $e) {
-                $pdo->rollBack();
+                // Make sure to rollback if there's an active transaction
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                
                 error_log("Detailed error while deleting voter: " . $e->getMessage());
                 
-                // Check for specific error conditions
+                // More specific error handling
                 if (strpos($e->getMessage(), 'foreign key constraint') !== false) {
-                    header('Location: manage_voters.php?error=' . urlencode('Cannot delete voter due to database constraints. Please contact system administrator.'));
+                    header('Location: manage_voters.php?error=' . urlencode('Cannot delete voter: They have related records in the system.'));
                 } else {
-                    header('Location: manage_voters.php?error=' . urlencode('Failed to delete voter: ' . $e->getMessage()));
+                    header('Location: manage_voters.php?error=' . urlencode('Failed to delete voter. Please try again.'));
                 }
                 exit();
             }
@@ -121,7 +137,9 @@ if (($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['ac
             } else if ($result['is_candidate']) {
                 header('Location: manage_voters.php?error=' . urlencode('Cannot delete: Voter is registered as a candidate. Please wait for pre-voting phase.'));
             }
-            $pdo->rollBack();
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             exit();
         }
     } catch (PDOException $e) {

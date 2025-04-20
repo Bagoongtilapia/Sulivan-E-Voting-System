@@ -1010,7 +1010,7 @@ error_log("Session data: " . print_r($_SESSION, true));
             <div class="ms-auto d-flex align-items-center">
                 <span class="text-white me-3">
                     <i class='bx bx-user-circle me-1'></i>
-                    <?php echo htmlspecialchars($_SESSION['user_name']); ?>
+                    <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?>
                 </span>
                 <a href="../auth/logout.php" class="btn btn-outline-light">
                     <i class='bx bx-log-out-circle me-1'></i>
