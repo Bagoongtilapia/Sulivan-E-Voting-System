@@ -37,7 +37,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
         body {
             background: var(--light-bg);
             min-height: 100vh;
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
 
         .sidebar {
@@ -97,12 +97,18 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .nav-link:hover {
             color: white;
             background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
         }
 
         .nav-link.active {
             background: white;
             color: var(--primary-color);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        .nav-link.active:hover {
+            color: var(--primary-color);
+            background: white;
+            transform: translateX(5px);
         }
 
         .nav-link.active i {

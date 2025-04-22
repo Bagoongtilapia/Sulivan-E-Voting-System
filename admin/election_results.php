@@ -221,6 +221,12 @@ switch($electionStatus) {
             font-size: 0.95rem;
         }
 
+        .nav-link:not(.active):hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
         .nav-link:not(.active):hover i {
             transform: scale(1.1);
         }

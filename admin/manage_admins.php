@@ -97,7 +97,7 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .nav-link:hover {
-            color: white;
+            color: rgba(255, 255, 255, 0.8);
             background: rgba(255, 255, 255, 0.1);
             transform: translateX(5px);
         }
