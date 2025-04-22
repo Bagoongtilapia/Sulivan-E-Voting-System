@@ -219,34 +219,108 @@ error_log("Session data: " . print_r($_SESSION, true));
 
         .navbar {
             background: var(--gradient-primary);
-            padding: 1rem 0;
+            padding: 0.3rem 0;
             box-shadow: 0 2px 10px rgba(57, 60, 178, 0.15);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            font-weight: 600;
-            font-size: 1.3rem;
-        }
-
-        .navbar-brand img {
-            width: 50px;
-            height: 50px;
-            margin-right: 12px;
+        .brand-logo {
+            width: 80px;
+            height: 80px;
             object-fit: cover;
             border-radius: 50%;
-            background-color: #393CB2;
-            padding: -10px;
             border: 2px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease;
         }
 
-        .navbar-brand:hover img {
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-            border-color: white;
+        .brand-text {
+            font-weight: 600;
+            font-size: 40px;
+            letter-spacing: 0.5px;
+        }
+
+        .navbar-toggler {
+            margin-right: 20px;
+            padding: 0.5rem;
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+            font-size: 25px;
+        }
+
+        .user-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-info:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-outline-light {
+            border-width: 2px;
+            padding: 0.3rem 1rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-light:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                background: var(--primary-dark);
+                padding: 1rem;
+                border-radius: 10px;
+                margin-top: 1rem;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .user-info {
+                margin-bottom: 1rem;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .btn-outline-light {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .brand-logo {
+                width: 60px;
+                height: 60px;
+                margin-left: 20px;
+            }
+
+            .brand-text {
+                font-size: 35px;
+            }
+        }
+
+        @media (max-width: 576px) {
+           
+            .container {
+                padding: 0 1rem;
+            }
+
+            .brand-logo {
+                width: 60px;
+                height: 60px;
+                margin-left: 20px;
+            }
+
+            .brand-text {
+                font-size: 25px;
+            }
         }
 
         .container {
@@ -1001,21 +1075,27 @@ error_log("Session data: " . print_r($_SESSION, true));
 <body>
     <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand text-white" href="#">
+            <a class="navbar-brand text-white d-flex align-items-center" href="#">
                 <img src="../image/Untitled.jpg" 
                      alt="E-Voting System" 
+                     class="brand-logo"
                      onerror="this.src='../uploads/default-logo.png'">
-                E-VOTE!
+                <span class="brand-text ms-2">E-Voting System</span>
             </a>
-            <div class="ms-auto d-flex align-items-center">
-                <span class="text-white me-3">
-                    <i class='bx bx-user-circle me-1'></i>
-                    <?php echo htmlspecialchars($_SESSION['user_name']); ?>
-                </span>
-                <a href="../auth/logout.php" class="btn btn-outline-light">
-                    <i class='bx bx-log-out-circle me-1'></i>
-                    Sign out
-                </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="ms-auto d-flex align-items-center flex-wrap">
+                    <div class="user-info d-flex align-items-center me-3 mb-2 mb-lg-0">
+                        <i class='bx bx-user-circle me-2'></i>
+                        <span class="text-white"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?></span>
+                    </div>
+                    <a href="../auth/logout.php" class="btn btn-outline-light d-flex align-items-center">
+                        <i class='bx bx-log-out-circle me-2'></i>
+                        <span>Sign out</span>
+                    </a>
+                </div>
             </div>
         </div>
     </nav>

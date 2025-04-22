@@ -1,6 +1,24 @@
 <?php
 session_start();
 require_once '../config/database.php';
+// require '../vendor/autoload.php'; // For PHPMailer
+require_once __DIR__ . '/../vendor/phpmailer/phpmailer/src/PHPMailer.php';
+require_once __DIR__ . '/../vendor/phpmailer/phpmailer/src/SMTP.php';
+require_once __DIR__ . '/../vendor/phpmailer/phpmailer/src/Exception.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+// Function to generate random password
+function generatePassword($length = 8) {
+    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    $password = '';
+    for ($i = 0; $i < $length; $i++) {
+        $password .= $chars[rand(0, strlen($chars) - 1)];
+    }
+    return $password;
+}
 
 // Check if user is logged in and is an admin
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['Super Admin', 'Sub-Admin'])) {
@@ -51,22 +69,34 @@ if (($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['ac
 
         if ($electionStatus === 'Pre-Voting') {
             try {
-                // First, remove their votes (if any)
+                // Make sure no transaction is active before starting a new one
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                
+                // Start transaction
+                $pdo->beginTransaction();
+
+                // 1. First, delete from otp_codes table
+                $stmt = $pdo->prepare("DELETE FROM otp_codes WHERE user_id = ?");
+                $stmt->execute([$id]);
+                
+                // 2. Delete from votes table
                 $stmt = $pdo->prepare("DELETE FROM votes WHERE student_id = ?");
                 $stmt->execute([$id]);
                 
-                // Get the candidate name from users table
+                // 3. Get the user's name before deletion
                 $stmt = $pdo->prepare("SELECT name FROM users WHERE id = ?");
                 $stmt->execute([$id]);
                 $userName = $stmt->fetchColumn();
                 
-                // Then remove them from candidates if they exist (matching by name)
+                // 4. Delete from candidates table if they are a candidate
                 if ($userName) {
                     $stmt = $pdo->prepare("DELETE FROM candidates WHERE name = ?");
                     $stmt->execute([$userName]);
                 }
                 
-                // Finally, delete the user account
+                // 5. Finally, delete the user
                 $stmt = $pdo->prepare("DELETE FROM users WHERE id = ? AND role = 'Student'");
                 if (!$stmt->execute([$id])) {
                     throw new PDOException("Failed to delete user record");
@@ -77,14 +107,18 @@ if (($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['ac
                 header('Location: manage_voters.php?success=Voter successfully deleted from the system');
                 exit();
             } catch (PDOException $e) {
-                $pdo->rollBack();
+                // Make sure to rollback if there's an active transaction
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                
                 error_log("Detailed error while deleting voter: " . $e->getMessage());
                 
-                // Check for specific error conditions
+                // More specific error handling
                 if (strpos($e->getMessage(), 'foreign key constraint') !== false) {
-                    header('Location: manage_voters.php?error=' . urlencode('Cannot delete voter due to database constraints. Please contact system administrator.'));
+                    header('Location: manage_voters.php?error=' . urlencode('Cannot delete voter: They have related records in the system.'));
                 } else {
-                    header('Location: manage_voters.php?error=' . urlencode('Failed to delete voter: ' . $e->getMessage()));
+                    header('Location: manage_voters.php?error=' . urlencode('Failed to delete voter. Please try again.'));
                 }
                 exit();
             }
@@ -103,7 +137,9 @@ if (($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['ac
             } else if ($result['is_candidate']) {
                 header('Location: manage_voters.php?error=' . urlencode('Cannot delete: Voter is registered as a candidate. Please wait for pre-voting phase.'));
             }
-            $pdo->rollBack();
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             exit();
         }
     } catch (PDOException $e) {
@@ -134,7 +170,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($electionStatus === 'Pre-Voting') {
         $name = trim($_POST['name']);
         $email = trim($_POST['email']);
-        $password = isset($_POST['password']) ? trim($_POST['password']) : '';
 
         if (empty($name) || empty($email)) {
             header('Location: manage_voters.php?error=Name and email are required');
@@ -145,27 +180,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_POST['action']) && $_POST['action'] === 'edit') {
                 // Edit existing voter
                 $voter_id = $_POST['voter_id'];
-                if (!empty($password)) {
-                    // Update with new password
-                    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                    $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, password = ? WHERE id = ? AND role = 'Student'");
-                    $stmt->execute([$name, $email, $hashed_password, $voter_id]);
-                } else {
-                    // Update without changing password
-                    $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ? WHERE id = ? AND role = 'Student'");
-                    $stmt->execute([$name, $email, $voter_id]);
-                }
+                $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ? WHERE id = ? AND role = 'Student'");
+                $stmt->execute([$name, $email, $voter_id]);
                 header('Location: manage_voters.php?success=Voter updated successfully');
             } else {
                 // Add new voter
-                if (empty($password)) {
-                    header('Location: manage_voters.php?error=Password is required for new voters');
-                    exit();
-                }
-                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                $tempPassword = generatePassword();
+                $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
+                
+                // Insert the new user with hashed password
                 $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'Student')");
-                $stmt->execute([$name, $email, $hashed_password]);
-                header('Location: manage_voters.php?success=Voter added successfully');
+                if ($stmt->execute([$name, $email, $hashedPassword])) {
+                    // Send email notification
+                    $mail = new PHPMailer(true);
+                    try {
+                        $mail->isSMTP();
+                        $mail->Host = 'smtp.gmail.com';
+                        $mail->SMTPAuth = true;
+                        $mail->Username = 'aryiendzi.fernando08@gmail.com';
+                        $mail->Password = 'kqse gdwf nxmk qlgk';
+                        $mail->SMTPSecure = 'tls';
+                        $mail->Port = 587;
+
+                        $mail->setFrom('aryiendzi.fernando08@gmail.com', 'System Admin');
+                        $mail->addAddress($email, $name);
+                        $mail->isHTML(true);
+                        $mail->Subject = 'Your New Account Details';
+                        $mail->Body = "
+                            Hi $name,<br><br>
+                            Your account has been created.<br>
+                            Temporary Password: <b>$tempPassword</b><br>
+                            Please log in and reset your password immediately.<br><br>
+                            <a href='http://localhost/login.php'>Log in here</a>
+                        ";
+                        
+                        $mail->send();
+                        header('Location: manage_voters.php?success=Voter added successfully and login credentials sent via email');
+                    } catch (Exception $e) {
+                        // Log the error but don't show technical details to user
+                        error_log("Failed to send email: " . $mail->ErrorInfo);
+                        header('Location: manage_voters.php?success=Voter added successfully but failed to send email notification');
+                    }
+                } else {
+                    header('Location: manage_voters.php?error=Failed to add voter');
+                }
+                exit();
             }
         } catch (PDOException $e) {
             if ($e->getCode() == 23000) { // Duplicate entry error
