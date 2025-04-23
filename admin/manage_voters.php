@@ -533,7 +533,7 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <tbody>
                                     <?php foreach ($voters as $voter): ?>
                                     <tr>
-                                        <td><?php echo $voter['id']; ?></td>
+                                        <td style="display: none;"><?php echo $voter['id']; ?></td>
                                         <td><?php echo htmlspecialchars($voter['name']); ?></td>
                                         <td><?php echo htmlspecialchars($voter['email']); ?></td>
                                         <td>
@@ -692,6 +692,7 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     }
                 },
                 columnDefs: [
+                    { visible: false, targets: 0 }, // Hide ID column
                     { orderable: false, targets: 4 } // Disable sorting on action column
                 ]
             });

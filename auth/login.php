@@ -22,13 +22,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Check if first_login exists in the user record
         $isFirstLogin = isset($user['first_login']) ? $user['first_login'] : 1;
 
-        // For admins, bypass OTP
+        // For admins, check if it's first login
         if ($user['role'] === 'Super Admin' || $user['role'] === 'Sub-Admin') {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['user_role'] = $user['role'];
-            header('Location: ../admin/dashboard.php');
-            exit();
+            $_SESSION['user_name'] = $user['name'];
+
+            if ($isFirstLogin == 1) {
+                // Update first_login status
+                $stmt = $pdo->prepare("UPDATE users SET first_login = 0 WHERE id = ?");
+                $stmt->execute([$user['id']]);
+                
+                // Redirect to change password page
+                header('Location: change_password.php');
+                exit();
+            } else {
+                header('Location: ../admin/dashboard.php');
+                exit();
+            }
         }
 
         // For students, check if it's first login
