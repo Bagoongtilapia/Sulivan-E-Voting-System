@@ -218,12 +218,9 @@ error_log("Session data: " . print_r($_SESSION, true));
         }
 
         .navbar {
-            background: var(--gradient-primary);
-            padding: 0.3rem 0;
-            box-shadow: 0 2px 10px rgba(57, 60, 178, 0.15);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            background: linear-gradient(135deg, #393CB2, #5558CD);
+            padding: 0.8rem 1.5rem;
+            box-shadow: none;
         }
 
         .brand-logo {
@@ -252,57 +249,69 @@ error_log("Session data: " . print_r($_SESSION, true));
         }
 
         .user-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.3rem 0.8rem;
-            border-radius: 50px;
-            transition: background-color 0.3s ease;
+            
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: 1rem;
         }
 
-        .user-info:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .user-info i {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .user-info span {
+            color: white;
+            font-size: 0.95rem;
         }
 
         .btn-outline-light {
             border-width: 2px;
             padding: 0.3rem 1rem;
-            border-radius: 50px;
+            border-radius: 8px;
             transition: all 0.3s ease;
         }
 
         .btn-outline-light:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.2);
+            transform: none;
         }
 
         /* Mobile Responsive Styles */
         @media (max-width: 991.98px) {
             .navbar-collapse {
-                background: var(--primary-dark);
+                background: #2A2D8F;
                 padding: 1rem;
-                border-radius: 10px;
+                border-radius: 8px;
                 margin-top: 1rem;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-profile {
+                flex-direction: column;
+                width: 100%;
+                gap: 1rem;
             }
 
             .user-info {
-                margin-bottom: 1rem;
                 width: 100%;
                 justify-content: center;
+                margin-right: 0;
             }
 
             .btn-outline-light {
                 width: 100%;
                 justify-content: center;
+                border: none;
+                background: rgba(255, 255, 255, 0.1);
+                transition: all 0.3s ease;
             }
 
-            .brand-logo {
-                width: 60px;
-                height: 60px;
-                margin-left: 20px;
-            }
-
-            .brand-text {
-                font-size: 35px;
+            .btn-outline-light:hover {
+                background: rgba(255, 255, 255, 0.39);
+                transform: none;
             }
         }
 
@@ -1086,13 +1095,12 @@ error_log("Session data: " . print_r($_SESSION, true));
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="ms-auto d-flex align-items-center flex-wrap">
-                    <div class="user-info d-flex align-items-center me-3 mb-2 mb-lg-0">
-                        <i class='bx bx-user-circle me-2'></i>
-                        <span class="text-white"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?></span>
+                <div class="nav-profile ms-auto d-flex align-items-center">
+                    <div class="user-info">
+                        <i class="fas fa-user"></i>
+                        <span><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?></span>
                     </div>
-                    <a href="../auth/logout.php" class="btn btn-outline-light d-flex align-items-center">
-                        <i class='bx bx-log-out-circle me-2'></i>
+                    <a href="../auth/logout.php" class="btn btn-outline-light">
                         <span>Sign out</span>
                     </a>
                 </div>
@@ -1517,3 +1525,4 @@ error_log("Session data: " . print_r($_SESSION, true));
     </script>
 </body>
 </html>
+

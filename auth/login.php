@@ -60,21 +60,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mail->isSMTP();
                 $mail->Host = 'smtp.gmail.com';
                 $mail->SMTPAuth = true;
-                $mail->Username = 'aryiendzi.fernando08@gmail.com';
-                $mail->Password = 'kqse gdwf nxmk qlgk';
+                $mail->Username = 'sulivannationalhighschool@gmail.com';
+                $mail->Password = 'nqhb kdea brfc xwvw';
                 $mail->SMTPSecure = 'tls';
                 $mail->Port = 587;
 
-                $mail->setFrom('aryiendzi.fernando08@gmail.com', 'E-Voting System');
+                $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-Voting System');
                 $mail->addAddress($email, $user['name']);
                 $mail->isHTML(true);
                 $mail->Subject = 'Your Login Verification Code';
                 $mail->Body = "
                     <h2>Your Verification Code</h2>
-                    <p>Here is your verification code to complete login: <strong>{$otp}</strong></p>
+                    <p>Here is your verification code to complete login:</p>
+                    <div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;'>
+                        <h1 style='color: #393CB2; margin: 0; letter-spacing: 5px;'>{$otp}</h1>
+                    </div>
                     <p>This code will expire in 5 minutes.</p>
                     <p>If you didn't request this code, please contact the administrator immediately.</p>
                 ";
+
+    //             $mail->Body = "
+    //     <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+    //         <h2 style='color: #393CB2;'>Hello {$user_name},</h2>
+    //         <p>Your new OTP code for the E-Voting System is:</p>
+    //         <div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;'>
+    //             <h1 style='color: #393CB2; margin: 0; letter-spacing: 5px;'>{$new_otp}</h1>
+    //         </div>
+    //         <p>This code will expire in 5 minutes.</p>
+    //         <p style='color: #666; font-size: 0.9em;'>If you didn't request this code, please ignore this email.</p>
+    //     </div>
+    // ";
 
                 $mail->send();
 
