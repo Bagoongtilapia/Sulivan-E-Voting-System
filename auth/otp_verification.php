@@ -30,6 +30,7 @@ if (!isset($_SESSION['temp_user_id']) || !isset($_SESSION['temp_user_email'])) {
             justify-content: center;
             margin: 0;
             padding: 20px;
+            color: white;
         }
 
         .container {
@@ -40,7 +41,7 @@ if (!isset($_SESSION['temp_user_id']) || !isset($_SESSION['temp_user_email'])) {
         }
 
         .otp-container {
-            background: white;
+            background: #2A2D8F;
             border-radius: 15px;
             box-shadow: 0 8px 24px rgba(57, 60, 178, 0.1);
             width: 100%;
@@ -52,55 +53,133 @@ if (!isset($_SESSION['temp_user_id']) || !isset($_SESSION['temp_user_email'])) {
             transform: translate(-50%, -50%);
         }
 
-        .otp-input {
-            letter-spacing: 1em;
+
+        .otp-title {
+            font-size: 1.2em;
+            color: white;
+            margin-bottom: 10px;
             text-align: center;
-            font-size: 1.5em;
-            padding: 10px;
         }
 
-        .btn-primary {
-            background: var(--gradient-primary);
-            border: none;
-            padding: 12px 25px;
-            font-weight: 600;
+        .otp-email {
+            color: #fbfbfb;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 0.9em;
         }
 
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #2A2D8F, #393CB2);
+        .otp-inputs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .otp-inputs input {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            border: 1px solid ;
+            background: transparent;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        .otp-inputs input:focus {
+            outline: none;
+            border-color: #393CB2;
+            box-shadow: 0 0 0 2px rgba(57, 60, 178, 0.2);
+        }
+
+        .spam-notice {
+            text-align: center;
+            color: #fbfbfb;
+            font-size: 0.8em;
+            margin-top: 20px;
+        }
+
+        .spam-notice span {
+            color:rgb(187, 184, 184);
+            text-decoration: none;
+        }
+
+        .alert {
+            background: #2a1a1a;
+            border: 1px solid #ff4444;
+            color: #ff4444;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="otp-container">
-            <div class="text-center mb-4">
-                <h2>OTP Verification</h2>
-                <p>Please enter the verification code sent to your email</p>
-            </div>
+           
+            <div class="otp-title">Check your email</div>
+            <div class="otp-email">Enter the code sent to <?php echo htmlspecialchars($_SESSION['temp_user_email']); ?></div>
             
             <?php if (isset($_GET['error'])): ?>
-            <div class="alert alert-danger" role="alert">
+            <div class="alert" role="alert">
                 <?php echo htmlspecialchars($_GET['error']); ?>
             </div>
             <?php endif; ?>
 
-            <form action="verify_otp.php" method="POST">
-                <div class="mb-4">
-                    <input type="text" class="form-control otp-input" 
-                           name="otp" maxlength="6" required 
-                           pattern="[0-9]{6}"
-                           placeholder="Enter OTP">
+            <form action="verify_otp.php" method="POST" id="otpForm">
+                <div class="otp-inputs">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                    <input type="hidden" name="otp" id="otpFinal">
                 </div>
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary">
-                        Verify OTP
-                    </button>
-                </div>
-
             </form>
+
+            <div class="spam-notice">
+                Can't find the email? <span>Check your spam folder</span>
+            </div>
+            
             
         </div>
+        
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('.otp-inputs input[type="text"]');
+            const form = document.getElementById('otpForm');
+            const otpFinal = document.getElementById('otpFinal');
+
+            // Auto-focus next input
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', function() {
+                    if (this.value.length === 1) {
+                        if (index < inputs.length - 1) {
+                            inputs[index + 1].focus();
+                        }
+                    }
+                });
+
+                // Handle backspace
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && !this.value && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                });
+            });
+
+            // Submit form when all inputs are filled
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    const allFilled = Array.from(inputs).every(input => input.value.length === 1);
+                    if (allFilled) {
+                        otpFinal.value = Array.from(inputs).map(input => input.value).join('');
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
