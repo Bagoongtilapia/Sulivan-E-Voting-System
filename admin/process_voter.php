@@ -197,19 +197,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $mail->isSMTP();
                         $mail->Host = 'smtp.gmail.com';
                         $mail->SMTPAuth = true;
-                        $mail->Username = 'aryiendzi.fernando08@gmail.com';
-                        $mail->Password = 'kqse gdwf nxmk qlgk';
+                        $mail->Username = 'sulivannationalhighschool@gmail.com';
+                        $mail->Password = 'nqhb kdea brfc xwvw';
                         $mail->SMTPSecure = 'tls';
                         $mail->Port = 587;
 
-                        $mail->setFrom('aryiendzi.fernando08@gmail.com', 'System Admin');
+                        $mail->setFrom('sulivannationalhighschool@gmail.com', 'System Admin');
                         $mail->addAddress($email, $name);
                         $mail->isHTML(true);
                         $mail->Subject = 'Your New Account Details';
                         $mail->Body = "
                             Hi $name,<br><br>
                             Your account has been created.<br>
-                            Temporary Password: <b>$tempPassword</b><br>
+                            Temporary Password: <br>
+                            <div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;'>
+                                <h1 style='color: #393CB2; margin: 0; letter-spacing: 5px;'>$tempPassword</h1>
+                            </div>
                             Please log in and reset your password immediately.<br><br>
                             <a href='http://localhost/login.php'>Log in here</a>
                         ";

@@ -108,6 +108,41 @@ if (!isset($_SESSION['temp_user_id']) || !isset($_SESSION['temp_user_email'])) {
             background: #2a1a1a;
             border: 1px solid #ff4444;
             color: #ff4444;
+            margin-bottom: 20px;
+        }
+
+        .alert.alert-success {
+            background: rgba(40, 167, 69, 0.1);
+            border-color: #28a745;
+            color: #28a745;
+        }
+
+        .resend-button {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .resend-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .resend-button.show {
+            display: block;
+        }
+
+        .attempts-counter {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            font-size: 0.9em;
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -121,6 +156,12 @@ if (!isset($_SESSION['temp_user_id']) || !isset($_SESSION['temp_user_email'])) {
             <?php if (isset($_GET['error'])): ?>
             <div class="alert" role="alert">
                 <?php echo htmlspecialchars($_GET['error']); ?>
+            </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['message'])): ?>
+            <div class="alert alert-success" role="alert">
+                <?php echo htmlspecialchars($_GET['message']); ?>
             </div>
             <?php endif; ?>
 
@@ -139,8 +180,20 @@ if (!isset($_SESSION['temp_user_id']) || !isset($_SESSION['temp_user_email'])) {
             <div class="spam-notice">
                 Can't find the email? <span>Check your spam folder</span>
             </div>
-            
-            
+
+            <?php if (isset($_SESSION['otp_attempts']) && $_SESSION['otp_attempts'] > 0): ?>
+            <div class="attempts-counter">
+                <?php echo (3 - $_SESSION['otp_attempts']); ?> attempts remaining
+            </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['show_resend']) && $_GET['show_resend'] === 'true'): ?>
+            <form action="send_otp.php" method="POST">
+                <button type="submit" class="resend-button show">
+                    Resend New OTP
+                </button>
+            </form>
+            <?php endif; ?>
         </div>
         
     </div>
@@ -151,9 +204,15 @@ if (!isset($_SESSION['temp_user_id']) || !isset($_SESSION['temp_user_email'])) {
             const form = document.getElementById('otpForm');
             const otpFinal = document.getElementById('otpFinal');
 
-            // Auto-focus next input
+            // Auto-focus first input on page load
+            inputs[0].focus();
+
+            // Auto-focus next input and validate numbers only
             inputs.forEach((input, index) => {
                 input.addEventListener('input', function() {
+                    // Remove any non-numeric characters
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    
                     if (this.value.length === 1) {
                         if (index < inputs.length - 1) {
                             inputs[index + 1].focus();
@@ -166,6 +225,14 @@ if (!isset($_SESSION['temp_user_id']) || !isset($_SESSION['temp_user_email'])) {
                     if (e.key === 'Backspace' && !this.value && index > 0) {
                         inputs[index - 1].focus();
                     }
+                });
+
+                // Prevent paste of non-numeric content
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pastedData = e.clipboardData.getData('text');
+                    const numericData = pastedData.replace(/[^0-9]/g, '');
+                    this.value = numericData;
                 });
             });
 
