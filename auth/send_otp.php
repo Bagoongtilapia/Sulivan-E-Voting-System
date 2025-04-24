@@ -43,7 +43,7 @@ try {
     $mail->Port = 587;
 
     // Recipients
-    $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-Voting System'); // Replace with your email and name
+    $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-VOTE'); // Replace with your email and name
     $mail->addAddress($email);
 
     // Get user's name from database
@@ -54,7 +54,7 @@ try {
 
     // Content
     $mail->isHTML(true);
-    $mail->Subject = 'New OTP Code - E-Voting System';
+    $mail->Subject = 'New OTP Code - E-VOTE';
     $mail->Body = "
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
             <h2 style='color: #393CB2;'>Hello {$user_name},</h2>

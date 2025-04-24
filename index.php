@@ -115,7 +115,7 @@
         <div class="login-container">
             <div class="login-header">
                 <h2 class="system-name">E-VOTE!</h2>
-                <p class="system-tagline">Welcome to the E-Voting System</p>
+                <p class="system-tagline">Welcome to the E-VOTE</p>
             </div>
             <form action="auth/login.php" method="POST" class="needs-validation" novalidate>
                 <div class="mb-4">

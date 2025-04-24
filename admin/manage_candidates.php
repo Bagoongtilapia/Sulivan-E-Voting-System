@@ -824,7 +824,7 @@ if (!file_exists($uploadDir)) {
                 
                 // If there are validation errors, show them and stop submission
                 if (errorMessage) {
-                    alert('Please fix the following errors:\n\n' + errorMessage);
+                    alert(errorMessage);
                     return false;
                 }
                 
