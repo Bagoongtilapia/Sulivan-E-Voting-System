@@ -312,9 +312,7 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         /* DataTables Pagination Styling */
         .dataTables_paginate .paginate_button {
-            padding: 0.375rem 0.75rem;
-            margin: 0 0.2rem;
-            border: 1px solid #dee2e6;
+            border: 1px solidrgb(0, 128, 255);
             background: white;
             border-radius: 6px;
             color: var(--primary-color) !important;
@@ -465,7 +463,7 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <tbody>
                                     <?php foreach ($subAdmins as $admin): ?>
                                     <tr>
-                                        <td><?php echo $admin['id']; ?></td>
+                                        <td style="display: none;"><?php echo $admin['id']; ?></td>
                                         <td><?php echo htmlspecialchars($admin['name']); ?></td>
                                         <td><?php echo htmlspecialchars($admin['email']); ?></td>
                                         <td><?php echo date('M d, Y', strtotime($admin['created_at'])); ?></td>
@@ -511,15 +509,6 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <label for="email" class="form-label">Email Address</label>
                             <input type="email" class="form-control" id="email" name="email" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="password" name="password" required>
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                    <i class='bx bx-show'></i>
-                                </button>
-                            </div>
-                        </div>
                         <div class="d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                             <button type="submit" class="btn btn-primary">Add Admin</button>
@@ -561,22 +550,9 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     }
                 },
                 columnDefs: [
+                    { visible: false, targets: 0 }, // Hide ID column
                     { orderable: false, targets: 4 } // Disable sorting on action column
                 ]
-            });
-
-            // Password visibility toggle
-            $('#togglePassword').click(function() {
-                const passwordInput = $('#password');
-                const icon = $(this).find('i');
-                
-                if (passwordInput.attr('type') === 'password') {
-                    passwordInput.attr('type', 'text');
-                    icon.removeClass('bx-show').addClass('bx-hide');
-                } else {
-                    passwordInput.attr('type', 'password');
-                    icon.removeClass('bx-hide').addClass('bx-show');
-                }
             });
         });
     </script>

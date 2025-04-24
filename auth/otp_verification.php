@@ -227,12 +227,17 @@ if (!isset($_SESSION['temp_user_id']) || !isset($_SESSION['temp_user_email'])) {
                     }
                 });
 
-                // Prevent paste of non-numeric content
+                // Prevent paste and copy events
                 input.addEventListener('paste', function(e) {
                     e.preventDefault();
-                    const pastedData = e.clipboardData.getData('text');
-                    const numericData = pastedData.replace(/[^0-9]/g, '');
-                    this.value = numericData;
+                });
+
+                input.addEventListener('copy', function(e) {
+                    e.preventDefault();
+                });
+
+                input.addEventListener('cut', function(e) {
+                    e.preventDefault();
                 });
             });
 

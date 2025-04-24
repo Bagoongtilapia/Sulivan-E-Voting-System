@@ -22,33 +22,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Check if first_login exists in the user record
         $isFirstLogin = isset($user['first_login']) ? $user['first_login'] : 1;
 
-        // For admins, bypass OTP
-        if ($user['role'] === 'Super Admin' || $user['role'] === 'Sub-Admin') {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_email'] = $user['email'];
-            $_SESSION['user_role'] = $user['role'];
-            header('Location: ../admin/dashboard.php');
-            exit();
-        }
-
-        // For students, check if it's first login
+        // For first login, update status and redirect to change password
         if ($isFirstLogin == 1) {
             // Update first_login status
             $stmt = $pdo->prepare("UPDATE users SET first_login = 0 WHERE id = ?");
             $stmt->execute([$user['id']]);
 
-            // Direct login without OTP for first time
+            // Set session variables
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['user_role'] = $user['role'];
             $_SESSION['user_name'] = $user['name'];
 
-            header('Location: ../student/dashboard.php');
-            exit();
+            // For admins, redirect to change password
+            if ($user['role'] === 'Super Admin' || $user['role'] === 'Sub-Admin') {
+                header('Location: change_password.php');
+                exit();
+            }
+            // For students, redirect to dashboard
+            else {
+                header('Location: ../student/dashboard.php');
+                exit();
+            }
         } else {
             // Not first login - generate and send OTP
             $otp = sprintf("%06d", mt_rand(0, 999999));
             $expires_at = date('Y-m-d H:i:s', strtotime('+5 minutes'));
+
+            // Reset OTP attempts counter
+            $_SESSION['otp_attempts'] = 0;
 
             // Save OTP to database
             $stmt = $pdo->prepare("INSERT INTO otp_codes (user_id, email, otp_code, expires_at) VALUES (?, ?, ?, ?)");
@@ -79,25 +81,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <p>If you didn't request this code, please contact the administrator immediately.</p>
                 ";
 
-    //             $mail->Body = "
-    //     <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-    //         <h2 style='color: #393CB2;'>Hello {$user_name},</h2>
-    //         <p>Your new OTP code for the E-Voting System is:</p>
-    //         <div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;'>
-    //             <h1 style='color: #393CB2; margin: 0; letter-spacing: 5px;'>{$new_otp}</h1>
-    //         </div>
-    //         <p>This code will expire in 5 minutes.</p>
-    //         <p style='color: #666; font-size: 0.9em;'>If you didn't request this code, please ignore this email.</p>
-    //     </div>
-    // ";
-
                 $mail->send();
 
                 // Set temporary session variables
                 $_SESSION['temp_user_id'] = $user['id'];
                 $_SESSION['temp_user_email'] = $email;
 
-                // Add this after line 46 in login.php (after generating OTP)
                 error_log("Generated OTP for user {$user['id']}: {$otp}");
 
                 header('Location: otp_verification.php');

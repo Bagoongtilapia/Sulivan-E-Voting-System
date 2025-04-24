@@ -785,6 +785,49 @@ if (!file_exists($uploadDir)) {
                 // Remove any existing success messages
                 $('.alert-success').remove();
                 
+                // Form validation
+                const name = $('#candidateName').val().trim();
+                const position = $('#candidatePosition').val();
+                const platform = $('#candidatePlatform').val().trim();
+                const image = $('#candidateImage')[0].files[0];
+                
+                // Validation messages
+                let errorMessage = '';
+                
+                if (!name) {
+                    errorMessage += 'Please enter candidate name.\n';
+                }
+                
+                if (!position) {
+                    errorMessage += 'Please select a position.\n';
+                }
+                
+                if (!platform) {
+                    errorMessage += 'Please enter candidate platform.\n';
+                }
+                
+                if (!image) {
+                    errorMessage += 'Please upload candidate photo.\n';
+                } else {
+                    // Validate image type
+                    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+                    if (!allowedTypes.includes(image.type)) {
+                        errorMessage += 'Please upload a valid image (JPEG, PNG, JPG).\n';
+                    }
+                    
+                    // Validate image size (max 2MB)
+                    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+                    if (image.size > maxSize) {
+                        errorMessage += 'Image size should not exceed 2MB.\n';
+                    }
+                }
+                
+                // If there are validation errors, show them and stop submission
+                if (errorMessage) {
+                    alert('Please fix the following errors:\n\n' + errorMessage);
+                    return false;
+                }
+                
                 var formData = new FormData(this);
                 
                 $.ajax({
@@ -807,6 +850,11 @@ if (!file_exists($uploadDir)) {
                             $('#addCandidateForm')[0].reset();
                             $('#addCandidateModal').modal('hide');
                             
+                            // Reset image preview
+                            $('#imagePreview').attr('src', '../uploads/candidates/default.png');
+                            $('.image-preview-wrapper i').show();
+                            $('.image-preview-text').show();
+                            
                             // Reload the page after a short delay to show the new candidate
                             setTimeout(function() {
                                 location.reload();
@@ -819,8 +867,6 @@ if (!file_exists($uploadDir)) {
                         alert('Error adding candidate: ' + error);
                     }
                 });
-
-                $('#addCandidateModal').modal('hide');
             });
 
             function previewImage(input) {

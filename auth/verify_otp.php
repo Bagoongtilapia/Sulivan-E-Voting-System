@@ -18,6 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_SESSION['temp_user_id'];
     $email = $_SESSION['temp_user_email'];
 
+    // Debug logging for attempts
+    error_log("Current OTP attempts: " . $_SESSION['otp_attempts']);
+
     // Check if maximum attempts reached
     if ($_SESSION['otp_attempts'] >= 3) {
         header('Location: otp_verification.php?error=Maximum attempts reached. Please request a new OTP.&show_resend=true');
@@ -105,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($_SESSION['otp_attempts'] >= 3) {
             header('Location: otp_verification.php?error=Maximum attempts reached. Please request a new OTP.&show_resend=true');
         } else {
-            header('Location: otp_verification.php?error=Invalid OTP. ' . $remaining_attempts . ' attempts remaining.');
+            header('Location: otp_verification.php?error=Invalid OTP. Please try again.');
         }
         exit();
     }
