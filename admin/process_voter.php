@@ -202,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $mail->SMTPSecure = 'tls';
                         $mail->Port = 587;
 
-                        $mail->setFrom('sulivannationalhighschool@gmail.com', 'System Admin');
+                        $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-VOTE');
                         $mail->addAddress($email, $name);
                         $mail->isHTML(true);
                         $mail->Subject = 'Your New Account Details';
@@ -214,7 +214,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <h1 style='color: #393CB2; margin: 0; letter-spacing: 5px;'>$tempPassword</h1>
                             </div>
                             Please log in and reset your password immediately.<br><br>
-                            <a href='http://localhost/login.php'>Log in here</a>
                         ";
                         
                         $mail->send();

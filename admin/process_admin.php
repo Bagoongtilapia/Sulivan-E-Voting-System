@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
             $mail->SMTPSecure = 'tls';
             $mail->Port = 587;
 
-            $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-Voting System');
+            $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-VOTE');
             $mail->addAddress($email, $name);
             $mail->isHTML(true);
             $mail->Subject = 'Your Admin Account Password';
@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                     <h1 style='color: #393CB2; margin: 0; letter-spacing: 5px;'>{$tempPassword}</h1>
                 </div>
                 <p>Please log in and change your password immediately.</p>
-                <p><a href='http://localhost/Sulivan-E-Voting-System/index.php'>Click here to log in</a></p>
+                
             ";
 
             $mail->send();
