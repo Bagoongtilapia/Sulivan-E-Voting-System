@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Voting System - Login</title>
+    <link rel="icon" type="image/x-icon" href="./image/favicon.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -108,6 +109,26 @@
             display: grid;
             place-items: center;
         }
+
+        .input-group input {
+            padding-right: 40px; /* Reserve space for the icon */
+        }
+
+        .input-group i {
+            transition: opacity 0.2s;
+        }
+
+        
+        /* Show envelope icon on hover */
+        .input-group:hover input[type="email"] ~ i {
+            opacity: 1;
+        }
+
+        /* Ensure password toggle icon always stays visible */
+        .input-group input[type="password"] ~ #togglePassword {
+            opacity: 1 !important;
+        }
+
     </style>
 </head>
 <body>
@@ -115,7 +136,7 @@
         <div class="login-container">
             <div class="login-header">
                 <h2 class="system-name">E-VOTE!</h2>
-                <p class="system-tagline">Welcome to the E-VOTE</p>
+                <p class="system-tagline">Sulivan E-Voting System </p>
             </div>
             <form action="auth/login.php" method="POST" class="needs-validation" novalidate>
                 <div class="mb-4">

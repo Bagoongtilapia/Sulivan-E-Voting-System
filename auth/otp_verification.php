@@ -44,13 +44,15 @@ if (!isset($_SESSION['temp_user_id']) || !isset($_SESSION['temp_user_email'])) {
             background: #2A2D8F;
             border-radius: 15px;
             box-shadow: 0 8px 24px rgba(57, 60, 178, 0.1);
-            width: 100%;
+            width: 90%;
             max-width: 400px;
-            padding: 40px;
+            min-width: 320px;
+            padding: 40px 30px;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            margin: 0 auto;
         }
 
 

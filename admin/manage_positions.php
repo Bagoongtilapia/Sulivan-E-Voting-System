@@ -152,7 +152,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .btn-primary {
             background: var(--gradient-primary);
             border: none;
-            padding: 0.625rem 1.25rem;
+            padding: 0.70rem 1.25rem;
             border-radius: 8px;
             font-weight: 500;
             transition: all 0.3s ease;
@@ -254,6 +254,11 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
             border: none;
         }
 
+        .modal-header .btn-close {
+            color: white;
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }   
+
         .modal-title {
             font-weight: 600;
         }
@@ -302,16 +307,20 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .add-position-btn {
-            background: var(--primary-color);
+            
             color: white;
-            border: none;
-            padding: 8px 16px;
             border-radius: 6px;
             font-size: 14px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
             text-decoration: none;
+            background: var(--gradient-primary);
+            border: none;
+            padding: 0.70rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
         .add-position-btn:hover {
@@ -322,6 +331,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .add-position-btn i {
             font-size: 16px;
+    
         }
 
         .manage-positions-header {
@@ -330,6 +340,22 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
             font-size: 24px;
             margin: 0;
         }
+
+        .btn-modal-cancel {
+            background: var(--accent-color);
+            color: var(--primary-color);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-modal-cancel:hover {
+            background: #d8daff;
+            transform: translateY(-1px);
+        }
+        
     </style>
 </head>
 <body>
@@ -461,7 +487,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" name="action" value="add" class="btn btn-primary">Add Position</button>
                     </div>
                 </form>
@@ -491,7 +517,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" name="action" value="edit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
@@ -514,7 +540,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <p class="text-danger">This action cannot be undone.</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" name="action" value="delete" class="btn btn-danger">Delete Position</button>
                     </div>
                 </form>

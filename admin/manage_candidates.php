@@ -431,6 +431,23 @@ if (!file_exists($uploadDir)) {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(57, 60, 178, 0.2);
         }
+
+        .add-candidate-btn {
+            color: white;
+            border-radius: 6px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            background: var(--gradient-primary);
+            border: none;
+            padding: 0.70rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
     </style>
 </head>
 <body>
