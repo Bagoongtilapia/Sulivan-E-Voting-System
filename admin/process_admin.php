@@ -126,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
         $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
 
         // Create admin account
-        $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, first_login) VALUES (?, ?, ?, 'Sub-Admin', 1)");
+        $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, first_login, password_changed) VALUES (?, ?, ?, 'Sub-Admin', 1, 0)");
         $stmt->execute([$name, $email, $hashedPassword]);
 
         // Send password email
