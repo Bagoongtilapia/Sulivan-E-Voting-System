@@ -336,7 +336,7 @@ if (!file_exists($uploadDir)) {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 3.5rem;
+            font-size: 9rem;
             color: var(--primary-color);
             opacity: 0.6;
             transition: all 0.3s ease;
@@ -408,6 +408,17 @@ if (!file_exists($uploadDir)) {
         .btn-modal-save:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(57, 60, 178, 0.2);
+        }
+
+        .modal-header .btn-close {
+            color: #fff !important;
+            filter: invert(1) grayscale(100%) brightness(200%);
+            opacity: 1;
+        }
+
+        .modal-header .btn-close:hover {
+            color: #f0f0f0 !important;
+            opacity: 1;
         }
 
     </style>
