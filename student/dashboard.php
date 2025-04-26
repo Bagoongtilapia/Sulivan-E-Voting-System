@@ -754,7 +754,7 @@ error_log("Session data: " . print_r($_SESSION, true));
             border-radius: 20px;
         }
 
-        .preview-candidate {
+        .preview-candidates {
             padding-left: 0;
         }
 
@@ -853,231 +853,307 @@ error_log("Session data: " . print_r($_SESSION, true));
             font-style: italic;
         }
         
-        .platform-modal-content .candidate-profile {
-            text-align: center;
-            padding: 1rem;
-        }
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .preview-modal .modal-dialog {
+                margin: 1rem;
+            }
 
-        .candidate-name-lg {
-            color: var(--primary-color);
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 0;
-            text-transform: capitalize;
-        }
-        
-        .modal-content {
-            border: none;
-            border-radius: 20px;
-            box-shadow: var(--card-shadow);
-        }
-        
-        .modal-header {
-            padding: 1.5rem 1.5rem 0;
-        }
-        /* Animation for modal */
-        .modal.fade .modal-dialog {
-            transform: scale(0.95);
-            transition: transform 0.3s ease-out;
-        }
+            .preview-modal .modal-content {
+                border-radius: 15px;
+            }
 
-        .modal.show .modal-dialog {
-            transform: scale(1);
-        }
-       
-        /* Platform Modal Styles */
-        .platform-modal .modal-dialog {
-            max-width: 400px;
-            margin: 1.5rem auto;
-        }
+            .preview-modal .modal-header {
+                padding: 1.25rem;
+            }
 
-        .platform-modal .modal-content {
-            border: none;
-            border-radius: 16px;
-            background: white;
-            overflow: hidden;
-            box-shadow: 0 15px 40px rgba(57, 60, 178, 0.15);
-        }
+            .preview-modal .modal-title {
+                font-size: 1.2rem;
+            }
 
-        .platform-modal .modal-body {
-            padding: 0;
-        }
+            .preview-modal .modal-body {
+                padding: 1.5rem;
+            }
 
-        .platform-modal .modal-header {
-            position: absolute;
-            right: 12px;
-            top: 12px;
-            z-index: 10;
-            border: none;
-            padding: 0;
-            background: transparent;
-        }
+            .preview-notice {
+                padding: 1rem;
+                font-size: 0.9rem;
+            }
 
-        .platform-modal .btn-close {
-            background-color: transparent;
-            width: 32px;
-            height: 32px;
-            padding: 8px;
-            opacity: 0.9;
-            filter: invert(1) brightness(200%);
-            transition: all 0.2s ease;
-        }
+            .preview-notice i {
+                font-size: 1.5rem;
+            }
 
-        .platform-modal .btn-close:hover {
-            opacity: 1;
-            transform: scale(1.1);
-        }
+            .preview-position {
+                padding: 1.25rem;
+            }
 
-        .platform-modal .candidate-section {
-            background: var(--primary-color);
-            padding: 2rem;
-            text-align: center;
-            position: relative;
-        }
+            .preview-position h4 {
+                font-size: 1.1rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
 
-        .platform-modal .candidate-section::after {
+            .preview-position h4 .position-count {
+                font-size: 0.8rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .preview-candidate {
+                padding: 0.75rem;
+            }
+
+            .preview-candidate i {
+                font-size: 1.2rem;
+                width: 30px;
+                height: 30px;
+            }
+
+            .preview-candidate .candidate-name {
+                font-size: 1rem;
+            }
+
+            .preview-buttons {
+                margin-top: 1.5rem;
+                padding-top: 1.25rem;
+            }
+
+            .btn-confirm {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+    <!-- Modern Preview Modal Styles (force override) -->
+    <style>
+    /* Force new styles for the preview modal */
+    .preview-modal-modern .modal-content {
+        border-radius: 20px !important;
+        border: none !important;
+        box-shadow: 0 15px 35px rgba(57, 60, 178, 0.15) !important;
+        background: #f8f9ff !important;
+    }
+    .preview-modal-modern .modal-header {
+        background: linear-gradient(90deg, #393CB2 60%, #5558CD 100%) !important;
+        color: white !important;
+        border-radius: 20px 20px 0 0 !important;
+        padding: 1.75rem !important;
+        border-bottom: none !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+    .preview-modal-modern .modal-title {
+        font-size: 1.4rem !important;
+        font-weight: 600 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        letter-spacing: 0.5px !important;
+    }
+    .preview-modal-modern .btn-close-white {
+        opacity: 0.8 !important;
+        transition: all 0.2s ease !important;
+    }
+    .preview-modal-modern .btn-close-white:hover {
+        opacity: 1 !important;
+    }
+    .preview-modal-modern .modal-body {
+        padding: 2rem !important;
+    }
+    .preview-modal-modern .preview-notice {
+        background: linear-gradient(45deg, #fff8e1, #fff3cd) !important;
+        color: #856404 !important;
+        padding: 1.25rem !important;
+        border-radius: 15px !important;
+        margin-bottom: 2rem !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        box-shadow: 0 3px 10px rgba(133, 100, 4, 0.1) !important;
+    }
+    .preview-modal-modern .preview-position {
+        background: white !important;
+        border-radius: 15px !important;
+        padding: 1.5rem !important;
+        margin-bottom: 1.25rem !important;
+        border: none !important;
+        position: relative !important;
+        overflow: hidden !important;
+        box-shadow: 0 3px 15px rgba(57, 60, 178, 0.08) !important;
+        transition: all 0.3s ease !important;
+    }
+    .preview-modal-modern .preview-position:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 5px 20px rgba(57, 60, 178, 0.12) !important;
+    }
+    .preview-modal-modern .preview-position::before {
             content: '';
             position: absolute;
-            bottom: 0;
+        top: 0;
             left: 0;
-            width: 100%;
-            height: 30%;
-            background: linear-gradient(to top, rgba(0,0,0,0.1), transparent);
+        width: 5px;
+        height: 100%;
+        background: var(--primary-color);
+        border-radius: 3px;
+    }
+    .preview-modal-modern .preview-position h4 {
+        color: var(--primary-color) !important;
+        font-size: 1.2rem !important;
+        font-weight: 600 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        letter-spacing: 0.3px !important;
+    }
+    .preview-modal-modern .preview-position h4 .position-count {
+        font-size: 0.9rem !important;
+        color: #666 !important;
+        font-weight: 500 !important;
+        background: var(--accent-color) !important;
+        padding: 0.4rem 0.8rem !important;
+        border-radius: 20px !important;
+    }
+    .preview-modal-modern .preview-candidates {
+        padding-left: 0 !important;
+    }
+    .preview-modal-modern .preview-candidate {
+        display: flex !important;
+        align-items: center !important;
+        gap: 1rem !important;
+        margin-bottom: 0.75rem !important;
+        padding: 1rem !important;
+        background: var(--accent-color) !important;
+        border-radius: 12px !important;
+        transition: all 0.3s ease !important;
+    }
+    .preview-modal-modern .preview-candidate:last-child {
+        margin-bottom: 0 !important;
+    }
+    .preview-modal-modern .preview-candidate:hover {
+        transform: translateX(5px) !important;
+        background: #e0e1ff !important;
+    }
+    .preview-modal-modern .preview-candidate i {
+        color: var(--primary-color) !important;
+        font-size: 1.4rem !important;
+        background: white !important;
+        width: 35px !important;
+        height: 35px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 50% !important;
+        box-shadow: 0 2px 8px rgba(57, 60, 178, 0.15) !important;
+    }
+    .preview-modal-modern .preview-candidate .candidate-info {
+        flex-grow: 1 !important;
+    }
+    .preview-modal-modern .preview-candidate .candidate-name {
+        font-weight: 500 !important;
+        color: #333 !important;
+        margin: 0 !important;
+        font-size: 1.1rem !important;
+    }
+    .preview-modal-modern .preview-buttons {
+        display: flex !important;
+        justify-content: flex-end !important;
+        margin-top: 2rem !important;
+        padding-top: 1.5rem !important;
+        border-top: 2px solid #eef0ff !important;
+    }
+    .preview-modal-modern .btn-confirm {
+        background: linear-gradient(45deg, #2ecc71, #27ae60) !important;
+        color: white !important;
+        border: none !important;
+        padding: 0.6rem 1.2rem !important;
+        border-radius: 8px !important;
+        font-weight: 500 !important;
+        font-size: 0.95rem !important;
+        letter-spacing: 0.3px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        transition: all 0.3s ease !important;
+        white-space: nowrap !important;
+        box-shadow: 0 2px 6px rgba(46, 204, 113, 0.2) !important;
+    }
+    .preview-modal-modern .btn-confirm:hover {
+        background: linear-gradient(45deg, #27ae60, #219a52) !important;
+        transform: translateY(-1px) !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3) !important;
+    }
+    .preview-modal-modern .btn-confirm i {
+        font-size: 1.1rem !important;
+    }
+    .preview-modal-modern .preview-candidate.no-selection {
+        background: #f8f9fa !important;
+        opacity: 0.8 !important;
+    }
+    .preview-modal-modern .preview-candidate.no-selection i {
+        color: #6c757d !important;
+        background: #e9ecef !important;
+    }
+    .preview-modal-modern .preview-candidate.no-selection .candidate-name {
+        color: #6c757d !important;
+        font-style: italic !important;
+    }
+    @media (max-width: 768px) {
+        .preview-modal-modern .modal-dialog {
+            margin: 1rem !important;
         }
-
-        .platform-modal .candidate-image-container {
-            width: 110px;
-            height: 110px;
-            margin: 0 auto 1.25rem;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 3px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-            position: relative;
-            background: white;
-            transform: rotate(-3deg);
-            transition: transform 0.3s ease;
+        .preview-modal-modern .modal-content {
+            border-radius: 15px !important;
         }
-
-        .platform-modal .candidate-image-container:hover {
-            transform: rotate(0deg);
+        .preview-modal-modern .modal-header {
+            padding: 1.25rem !important;
         }
-
-        .platform-modal .candidate-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
+        .preview-modal-modern .modal-title {
+            font-size: 1.2rem !important;
         }
-
-        .platform-modal .candidate-image.error {
-            opacity: 0.7;
-            filter: grayscale(1);
+        .preview-modal-modern .modal-body {
+            padding: 1.5rem !important;
         }
-
-        .platform-modal .candidate-name {
-            color: white;
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin: 0;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            position: relative;
-            z-index: 1;
+        .preview-modal-modern .preview-notice {
+            padding: 1rem !important;
+            font-size: 0.9rem !important;
         }
-
-        .platform-modal .error-message {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-            display: none;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            position: relative;
-            z-index: 1;
-            background: rgba(220, 53, 69, 0.1);
-            padding: 0.4rem 0.8rem;
-            border-radius: 4px;
-            backdrop-filter: blur(4px);
+        .preview-modal-modern .preview-notice i {
+            font-size: 1.5rem !important;
         }
-
-        .platform-modal .error-message.show {
-            display: inline-block;
-            animation: fadeIn 0.3s ease;
+        .preview-modal-modern .preview-position {
+            padding: 1.25rem !important;
         }
-
-        .platform-modal .platform-content {
-            padding: 1.75rem;
-            background: white;
+        .preview-modal-modern .preview-position h4 {
+            font-size: 1.1rem !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.5rem !important;
         }
-
-        .platform-modal .platform-label {
-            color: var(--primary-color);
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            opacity: 0.9;
+        .preview-modal-modern .preview-position h4 .position-count {
+            font-size: 0.8rem !important;
+            padding: 0.3rem 0.6rem !important;
         }
-
-        .platform-modal .platform-label::before,
-        .platform-modal .platform-label::after {
-            content: '';
-            height: 1px;
-            background: currentColor;
-            flex: 1;
-            opacity: 0.3;
+        .preview-modal-modern .preview-candidate {
+            padding: 0.75rem !important;
         }
-
-        .platform-modal .platform-text {
-            color: #2c3e50;
-            line-height: 1.7;
-            font-size: 0.95rem;
-            margin: 0;
-            white-space: pre-line;
+        .preview-modal-modern .preview-candidate i {
+            font-size: 1.2rem !important;
+            width: 30px !important;
+            height: 30px !important;
         }
-
-        .platform-modal .platform-text:empty::before {
-            content: 'No platform information available.';
-            color: #6c757d;
-            font-style: italic;
-            display: block;
-            text-align: center;
-            padding: 1.5rem;
-            background: #f8f9fa;
-            border-radius: 8px;
+        .preview-modal-modern .preview-candidate .candidate-name {
+            font-size: 1rem !important;
         }
-
-        .platform-modal .error-state {
-            padding: 3rem 2rem;
-            text-align: center;
-            color: #dc3545;
-            background: #fff;
+        .preview-modal-modern .preview-buttons {
+            margin-top: 1.5rem !important;
+            padding-top: 1.25rem !important;
         }
-
-        .platform-modal .error-state i {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            opacity: 0.9;
+        .preview-modal-modern .btn-confirm {
+            padding: 0.5rem 1rem !important;
+            font-size: 0.9rem !important;
         }
-
-        .platform-modal .error-state h4 {
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .platform-modal .error-state p {
-            color: #6c757d;
-            margin: 0;
-            font-size: 0.9rem;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -1270,10 +1346,18 @@ error_log("Session data: " . print_r($_SESSION, true));
                                                         </button>
                                                     </div>
                                                 </div>
+                                                <?php if ($position['max_votes'] > 1): ?>
                                                 <input type="checkbox" 
                                                        name="vote[<?php echo $position['id']; ?>][]" 
+                                                           value="<?php echo $candidate['id']; ?>" 
+                                                           class="form-check-input"
+                                                           data-max-votes="<?php echo $position['max_votes']; ?>">
+                                                <?php else: ?>
+                                                    <input type="radio" 
+                                                           name="vote[<?php echo $position['id']; ?>]" 
                                                        value="<?php echo $candidate['id']; ?>" 
                                                        class="form-check-input">
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
@@ -1317,7 +1401,7 @@ error_log("Session data: " . print_r($_SESSION, true));
     </div>
 
     <!-- Preview Modal -->
-    <div class="modal fade preview-modal" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal fade preview-modal preview-modal-modern" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -1418,9 +1502,20 @@ error_log("Session data: " . print_r($_SESSION, true));
             // Then collect selected candidates
             for (const positionId in positions) {
                 const position = positions[positionId];
-                const selectedCandidates = document.querySelectorAll(`input[name="vote[${positionId}][]"]:checked`);
+                let selectedCandidates;
                 
-                // Only check for maximum votes limit
+                if (position.max_votes === 1) {
+                    // For single-choice positions (radio buttons)
+                    const selectedRadio = document.querySelector(`input[name="vote[${positionId}]"]:checked`);
+                    if (selectedRadio) {
+                        const card = selectedRadio.closest('.candidate-card');
+                        preview[position.name].candidates = [card.querySelector('.candidate-name').textContent.trim()];
+                    }
+                } else {
+                    // For multiple-choice positions (checkboxes)
+                    selectedCandidates = document.querySelectorAll(`input[name="vote[${positionId}][]"]:checked`);
+                    
+                    // Check maximum votes limit
                 if (selectedCandidates.length > position.max_votes) {
                     toastr.warning(`You can only select ${position.max_votes} candidate(s) for ${position.name}`);
                     return;
@@ -1432,6 +1527,7 @@ error_log("Session data: " . print_r($_SESSION, true));
                         const card = checkbox.closest('.candidate-card');
                         return card.querySelector('.candidate-name').textContent.trim();
                     });
+                    }
                 }
             }
             
@@ -1458,6 +1554,14 @@ error_log("Session data: " . print_r($_SESSION, true));
                             </div>`;
                     });
                     html += '</div>';
+                } else {
+                    html += `
+                        <div class="preview-candidate no-selection">
+                            <i class='bx bx-x-circle'></i>
+                            <div class="candidate-info">
+                                <p class="candidate-name">No candidate selected</p>
+                            </div>
+                        </div>`;
                 }
                 
                 html += '</li>';
@@ -1478,25 +1582,39 @@ error_log("Session data: " . print_r($_SESSION, true));
                 return;
             }
             
-            const checkbox = card.querySelector('input[type="checkbox"]');
+            const input = card.querySelector('input[type="radio"], input[type="checkbox"]');
             const positions = <?php echo json_encode($positions); ?>;
-            const maxVotes = positions[positionId]?.max_votes || 1;
+            const position = positions[positionId];
+            const maxVotes = position.max_votes;
+            
+            if (input.type === 'radio') {
+                // For single-choice positions (radio buttons)
+                // Uncheck all other radio buttons in this position
+                document.querySelectorAll(`input[name="vote[${positionId}]"]`).forEach(radio => {
+                    radio.closest('.candidate-card').classList.remove('selected');
+                });
+                // Check the selected radio button
+                input.checked = true;
+                card.classList.add('selected');
+            } else {
+                // For multiple-choice positions (checkboxes)
             const currentChecked = document.querySelectorAll(`input[name="vote[${positionId}][]"]:checked`).length;
             
             // If trying to select more than max_votes, prevent it
-            if (!checkbox.checked && currentChecked >= maxVotes) {
-                toastr.warning(`You can only select ${maxVotes} candidate(s) for this position`);
+                if (!input.checked && currentChecked >= maxVotes) {
+                    toastr.warning(`You can only select ${maxVotes} candidate(s) for ${position.name}`);
                 return;
             }
             
             // Toggle checkbox
-            checkbox.checked = !checkbox.checked;
+                input.checked = !input.checked;
             
             // Toggle selected class
-            if (checkbox.checked) {
+                if (input.checked) {
                 card.classList.add('selected');
             } else {
                 card.classList.remove('selected');
+                }
             }
         }
 
