@@ -1,0 +1,32 @@
+/* Shared admin panel styles */
+:root {
+    --primary-color: #393CB2;
+    --primary-light: #5558CD;
+    --primary-dark: #2A2D8F;
+    --accent-color: #E8E9FF;
+    --gradient-primary: linear-gradient(135deg, #393CB2, #5558CD);
+    --light-bg: #F8F9FF;
+}
+
+.btn-add-main {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    padding: 0.70rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 6px rgba(57, 60, 178, 0.08);
+    transition: all 0.2s ease;
+}
+.btn-add-main:hover, .btn-add-main:focus {
+    background: var(--primary-dark);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(57, 60, 178, 0.2);
+    text-decoration: none;
+    outline: none;
+} 

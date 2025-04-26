@@ -36,6 +36,7 @@ if (!file_exists($uploadDir)) {
     <title>Manage Candidates - E-VOTE!</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
+    <link href="css/admin-shared.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #393CB2;
@@ -221,29 +222,6 @@ if (!file_exists($uploadDir)) {
         .btn-remove:hover {
             background: #dc3545;
             color: white;
-        }
-
-        .add-candidate-btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-        }
-
-        .add-candidate-btn:hover {
-            background: var(--primary-light);
-            color: white;
-            text-decoration: none;
-        }
-
-        .add-candidate-btn i {
-            font-size: 16px;
         }
 
         .section-header {
@@ -432,22 +410,6 @@ if (!file_exists($uploadDir)) {
             box-shadow: 0 4px 12px rgba(57, 60, 178, 0.2);
         }
 
-        .add-candidate-btn {
-            color: white;
-            border-radius: 6px;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-            background: var(--gradient-primary);
-            border: none;
-            padding: 0.70rem 1.25rem;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
     </style>
 </head>
 <body>
@@ -506,7 +468,7 @@ if (!file_exists($uploadDir)) {
                         <div class="d-flex align-items-center">
                             <h2 class="mb-0" style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-size: 24px; color: var(--primary-color);">Manage Candidates</h2>
                         </div>
-                        <button class="add-candidate-btn" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
+                        <button class="btn-add-main" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
                             <i class='bx bx-plus'></i>
                             Add New Candidate
                         </button>
@@ -615,7 +577,7 @@ if (!file_exists($uploadDir)) {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-modal-save">Save Candidate</button>
+                        <button type="submit" class="btn-add-main">Save Candidate</button>
                     </div>
                 </form>
             </div>

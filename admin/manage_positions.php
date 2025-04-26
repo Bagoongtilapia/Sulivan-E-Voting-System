@@ -21,6 +21,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>Manage Positions - E-VOTE!</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
+    <link href="css/admin-shared.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #393CB2;
@@ -355,7 +356,6 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
             background: #d8daff;
             transform: translateY(-1px);
         }
-        
     </style>
 </head>
 <body>
@@ -412,7 +412,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="section-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <h2 class="manage-positions-header">Manage Positions</h2>
-                        <button class="add-position-btn" data-bs-toggle="modal" data-bs-target="#addPositionModal">
+                        <button class="btn-add-main" data-bs-toggle="modal" data-bs-target="#addPositionModal">
                             <i class='bx bx-plus'></i>
                             Add New Position
                         </button>
@@ -496,7 +496,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" name="action" value="add" class="btn btn-primary">Add Position</button>
+                        <button type="submit" name="action" value="add" class="btn-add-main">Add Position</button>
                     </div>
                 </form>
             </div>
@@ -526,7 +526,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" name="action" value="edit" class="btn btn-primary">Save Changes</button>
+                        <button type="submit" name="action" value="edit" class="btn-add-main">Save Changes</button>
                     </div>
                 </form>
             </div>

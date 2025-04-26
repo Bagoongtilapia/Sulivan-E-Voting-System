@@ -27,6 +27,7 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="css/admin-shared.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #393CB2;
@@ -503,8 +504,9 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <button id="deleteSelected" class="btn btn-danger btn-bulk-delete" style="display: none;">
                                 <i class='bx bx-trash me-2'></i>Delete Selected
                             </button>
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAdminModal">
-                                <i class='bx bx-plus-circle me-2'></i>Add New Admin
+                            <button class="btn-add-main" data-bs-toggle="modal" data-bs-target="#addAdminModal">
+                                <i class='bx bx-plus'></i>
+                                Add New Admin
                             </button>
                         </div>
                     </div>
@@ -574,7 +576,7 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                         <div class="d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Add Admin</button>
+                            <button type="submit" class="btn-add-main">Add Admin</button>
                         </div>
                     </form>
                 </div>

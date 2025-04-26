@@ -32,6 +32,7 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="css/admin-shared.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #393CB2;
@@ -423,15 +424,6 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
         }
 
-        .btn-primary {
-            background: var(--gradient-primary);
-            border: none;
-            padding: 0.70rem 1.25rem;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
         /* DataTables info text styling */
         .dataTables_info {
             color: #6c757d;  /* Gray text color */
@@ -628,10 +620,11 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <button id="deleteSelected" class="btn btn-danger btn-bulk-delete">
                                     <i class='bx bx-trash me-2'></i>Delete Selected
                                 </button>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVoterModal" 
+                                <button class="btn-add-main" data-bs-toggle="modal" data-bs-target="#addVoterModal" 
                                         data-bs-toggle="tooltip" data-bs-placement="left" 
                                         title="Add a new voter to the system">
-                                    <i class='bx bx-plus-circle me-2'></i>Add New Voter
+                                    <i class='bx bx-plus'></i>
+                                    Add New Voter
                                 </button>
                             </div>
                         <?php endif; ?>
@@ -734,7 +727,7 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                        
                         <div class="d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Add Voter</button>
+                            <button type="submit" class="btn-add-main">Add Voter</button>
                         </div>
 
                     </form>
@@ -778,9 +771,7 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                         <div class="d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class='bx bx-save me-2'></i>Save Changes
-                            </button>
+                            <button type="submit" class="btn-add-main"><i class='bx bx-save me-2'></i>Save Changes</button>
                         </div>
                     </form>
                 </div>
