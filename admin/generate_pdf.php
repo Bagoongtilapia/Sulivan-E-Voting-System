@@ -59,6 +59,14 @@ try {
     $stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
     $electionStatus = $stmt->fetch(PDO::FETCH_COLUMN) ?? 'Pre-Voting';
 
+    // Fetch election name from the database
+    try {
+        $stmt = $pdo->query("SELECT election_name FROM election_status ORDER BY id DESC LIMIT 1");
+        $electionName = $stmt->fetchColumn() ?: 'SSLG ELECTION 2025';
+    } catch (PDOException $e) {
+        $electionName = 'SSLG ELECTION 2025';
+    }
+
     // Status header
     $pdf->SetFont('helvetica', 'B', 12);
     $pdf->SetTextColor($electionStatus === 'Ended' ? 40 : 200, $electionStatus === 'Ended' ? 167 : 150, $electionStatus === 'Ended' ? 69 : 0);

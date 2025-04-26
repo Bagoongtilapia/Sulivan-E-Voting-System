@@ -21,6 +21,14 @@ try {
     $electionStatus = 'Unknown';
 }
 
+// Fetch election name from the database
+try {
+    $stmt = $pdo->query("SELECT election_name FROM election_status ORDER BY id DESC LIMIT 1");
+    $electionName = $stmt->fetchColumn() ?: 'SSLG ELECTION 2025';
+} catch (PDOException $e) {
+    $electionName = 'SSLG ELECTION 2025';
+}
+
 // Get statistics
 try {
     $stats = [];
@@ -737,12 +745,12 @@ try {
                             <input type="text" 
                                 id="electionName" 
                                 class="form-control" 
-                                value="<?php echo htmlspecialchars($_SESSION['election_name']); ?>" 
+                                value="<?php echo htmlspecialchars($electionName); ?>" 
                                 style="min-width: 250px;">
                         </div>
                         <?php else: ?>
                         <div class="election-name">
-                            <h5 class="mb-0"><?php echo htmlspecialchars($_SESSION['election_name']); ?></h5>
+                            <h5 class="mb-0"><?php echo htmlspecialchars($electionName); ?></h5>
                         </div>
                         <?php endif; ?>
                     </div>

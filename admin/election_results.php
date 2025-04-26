@@ -15,14 +15,14 @@ try {
     $electionStatus = $result['status'] ?? 'Pre-Voting';
     $isResultAuthenticated = $result['is_result_authenticated'] ?? false;
 
-    // Get election name from session or set default
-    if (!isset($_SESSION['election_name'])) {
-        $_SESSION['election_name'] = "SSLG ELECTION 2025";
-    }
+    // Fetch election name from the database
+    $stmt = $pdo->query("SELECT election_name FROM election_status ORDER BY id DESC LIMIT 1");
+    $electionName = $stmt->fetchColumn() ?: 'SSLG ELECTION 2025';
 } catch (PDOException $e) {
     error_log("Error fetching election status: " . $e->getMessage());
     $electionStatus = 'Unknown';
     $isResultAuthenticated = false;
+    $electionName = 'SSLG ELECTION 2025';
 }
 
 // Initialize variables
@@ -684,7 +684,7 @@ switch($electionStatus) {
                     <!-- Election Name for PDF -->
                     <div class="text-center mb-4 pdf-header">
                         <h1 class="mb-2">Election Results</h1>
-                        <h3 class="text-primary mb-4"><?php echo htmlspecialchars($_SESSION['election_name']); ?></h3>
+                        <h3 class="text-primary mb-4"><?php echo htmlspecialchars($electionName); ?></h3>
                         <p class="text-muted">Generated on: <?php echo date('F j, Y g:i A'); ?></p>
                     </div>
                     <?php if (empty($positions)): ?>
@@ -767,7 +767,7 @@ switch($electionStatus) {
             const element = document.getElementById('pdf-content');
             const opt = {
                 margin: 1,
-                filename: '<?php echo preg_replace("/[^a-zA-Z0-9]+/", "_", $_SESSION["election_name"]); ?>_results.pdf',
+                filename: '<?php echo preg_replace("/[^a-zA-Z0-9]+/", "_", $electionName); ?>_results.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { 
                     scale: 2,
