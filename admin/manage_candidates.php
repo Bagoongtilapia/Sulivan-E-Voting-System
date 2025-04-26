@@ -21,6 +21,24 @@ $candidates = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $stmt = $pdo->query("SELECT * FROM positions ORDER BY id ASC");
 $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Get election status
+try {
+    $stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
+    $electionStatus = $stmt->fetchColumn() ?? 'Pre-Voting';
+} catch (PDOException $e) {
+    // If table doesn't exist or other error, default to Pre-Voting
+    $electionStatus = 'Pre-Voting';
+}
+
+// Check if form is submitted
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    // If trying to add a candidate during voting or ended phase
+    if ($electionStatus !== 'Pre-Voting' && $_POST['action'] === 'add') {
+        header('Location: manage_candidates.php?error=Cannot add candidates during ' . $electionStatus . ' phase');
+        exit();
+    }
+}
+
 // Create uploads directory if it doesn't exist
 $uploadDir = '../uploads/candidates/';
 if (!file_exists($uploadDir)) {
@@ -421,6 +439,23 @@ if (!file_exists($uploadDir)) {
             opacity: 1;
         }
 
+        /* Election Status Alert */
+        .alert-info {
+            background: var(--accent-color);
+            border: none;
+            color: var(--primary-color);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .alert-info i {
+            font-size: 1.25rem;
+        }
+
     </style>
 </head>
 <body>
@@ -479,10 +514,12 @@ if (!file_exists($uploadDir)) {
                         <div class="d-flex align-items-center">
                             <h2 class="mb-0" style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-size: 24px; color: var(--primary-color);">Manage Candidates</h2>
                         </div>
-                        <button class="btn-add-main" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
-                            <i class='bx bx-plus'></i>
-                            Add New Candidate
-                        </button>
+                        <?php if ($electionStatus === 'Pre-Voting'): ?>
+                            <button class="btn-add-main" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
+                                <i class='bx bx-plus'></i>
+                                Add New Candidate
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -659,6 +696,18 @@ if (!file_exists($uploadDir)) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Get election status from PHP variable
+            const electionStatus = '<?php echo $electionStatus; ?>';
+            
+            // Prevent form submission if not in Pre-Voting phase
+            $('#addCandidateForm').on('submit', function(e) {
+                if (electionStatus !== 'Pre-Voting') {
+                    e.preventDefault();
+                    alert('Cannot add candidates during ' + electionStatus + ' phase');
+                    return false;
+                }
+            });
+
             // Edit candidate functionality
             $('.btn-edit').click(function() {
                 const id = $(this).data('id');

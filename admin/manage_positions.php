@@ -11,6 +11,15 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['Super Ad
 // Get all positions ordered by ID (so newer positions appear at the bottom)
 $stmt = $pdo->query("SELECT * FROM positions ORDER BY id ASC");
 $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Get election status
+try {
+    $stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
+    $electionStatus = $stmt->fetchColumn() ?? 'Pre-Voting';
+} catch (PDOException $e) {
+    // If table doesn't exist or other error, default to Pre-Voting
+    $electionStatus = 'Pre-Voting';
+}
 ?>
 
 <!DOCTYPE html>
@@ -411,11 +420,15 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="col-md-10 main-content">
                 <div class="section-header">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h2 class="manage-positions-header">Manage Positions</h2>
-                        <button class="btn-add-main" data-bs-toggle="modal" data-bs-target="#addPositionModal">
-                            <i class='bx bx-plus'></i>
-                            Add New Position
-                        </button>
+                        <div class="d-flex align-items-center">
+                            <h2 class="mb-0" style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-size: 24px; color: var(--primary-color);">Manage Positions</h2>
+                        </div>
+                        <?php if ($electionStatus === 'Pre-Voting'): ?>
+                            <button class="btn-add-main" data-bs-toggle="modal" data-bs-target="#addPositionModal">
+                                <i class='bx bx-plus'></i>
+                                Add New Position
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
 
