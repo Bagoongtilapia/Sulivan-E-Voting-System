@@ -527,33 +527,41 @@ if (!file_exists($uploadDir)) {
                     </div>
                 <?php endif; ?>
 
-                <!-- Candidates List -->
-                <div class="row g-4">
-                    <?php foreach ($candidates as $candidate): ?>
-                        <div class="col-md-4">
-                            <div class="candidate-card">
-                                <img src="<?php echo !empty($candidate['image_path']) ? '../' . $candidate['image_path'] : '../uploads/candidates/default.png'; ?>" 
-                                     alt="<?php echo htmlspecialchars($candidate['name']); ?>" 
-                                     class="candidate-image">
-                                <h5 class="candidate-name"><?php echo htmlspecialchars($candidate['name']); ?></h5>
-                                <span class="position-badge" data-position-id="<?php echo $candidate['position_id']; ?>"><?php echo htmlspecialchars($candidate['position_name']); ?></span>
-                                <div class="platform-text">
-                                    <?php echo nl2br(htmlspecialchars($candidate['platform'])); ?>
-                                </div>
-                                <div class="action-buttons">
-                                    <button class="btn btn-edit" data-id="<?php echo $candidate['id']; ?>" data-position-id="<?php echo $candidate['position_id']; ?>" data-platform="<?php echo htmlspecialchars($candidate['platform']); ?>">
-                                        <i class='bx bx-edit'></i> Edit
-                                    </button>
-                                    <?php if ($_SESSION['user_role'] === 'Super Admin'): ?>
-                                        <button class="btn btn-remove" data-id="<?php echo $candidate['id']; ?>" data-name="<?php echo htmlspecialchars($candidate['name']); ?>">
-                                            <i class='bx bx-trash'></i> Remove
+                <?php if (empty($candidates)): ?>
+                    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 350px;">
+                        <img src="../image/nocandidate.jpg" alt="No Candidates" style="max-width: 260px; width: 100%; margin-bottom: 2rem; opacity: 0.8;">
+                        <h4 style="color: #888; font-weight: 500;">No candidates yet</h4>
+                        <p style="color: #aaa;">Add your first candidate to get started!</p>
+                    </div>
+                <?php else: ?>
+                    <!-- Candidates List -->
+                    <div class="row g-4">
+                        <?php foreach ($candidates as $candidate): ?>
+                            <div class="col-md-4">
+                                <div class="candidate-card">
+                                    <img src="<?php echo !empty($candidate['image_path']) ? '../' . $candidate['image_path'] : '../uploads/candidates/default.png'; ?>" 
+                                         alt="<?php echo htmlspecialchars($candidate['name']); ?>" 
+                                         class="candidate-image">
+                                    <h5 class="candidate-name"><?php echo htmlspecialchars($candidate['name']); ?></h5>
+                                    <span class="position-badge" data-position-id="<?php echo $candidate['position_id']; ?>"><?php echo htmlspecialchars($candidate['position_name']); ?></span>
+                                    <div class="platform-text">
+                                        <?php echo nl2br(htmlspecialchars($candidate['platform'])); ?>
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-edit" data-id="<?php echo $candidate['id']; ?>" data-position-id="<?php echo $candidate['position_id']; ?>" data-platform="<?php echo htmlspecialchars($candidate['platform']); ?>">
+                                            <i class='bx bx-edit'></i> Edit
                                         </button>
-                                    <?php endif; ?>
+                                        <?php if ($_SESSION['user_role'] === 'Super Admin'): ?>
+                                            <button class="btn btn-remove" data-id="<?php echo $candidate['id']; ?>" data-name="<?php echo htmlspecialchars($candidate['name']); ?>">
+                                                <i class='bx bx-trash'></i> Remove
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

@@ -431,6 +431,13 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                 <?php endif; ?>
 
+                <?php if (empty($positions)): ?>
+                    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 350px;">
+                        <img src="../image/nocandidate.jpg" alt="No Positions" style="max-width: 260px; width: 100%; margin-bottom: 2rem; opacity: 0.8;">
+                        <h4 style="color: #888; font-weight: 500;">No positions yet</h4>
+                        <p style="color: #aaa;">Add your first position to get started!</p>
+                    </div>
+                <?php else: ?>
                 <div class="row g-4">
                     <?php foreach ($positions as $position): ?>
                         <div class="col-md-6 col-lg-4">
@@ -462,6 +469,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                     <?php endforeach; ?>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
