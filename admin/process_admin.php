@@ -25,47 +25,79 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Super Admin') {
     exit();
 }
 
-// Handle DELETE request
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
-    $id = isset($_POST['admin_id']) ? $_POST['admin_id'] : null;
-    
-    if (!$id) {
-        header('Location: manage_admins.php?error=No admin ID provided');
+// Handle bulk delete request first
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'bulk_delete') {
+    if (!isset($_POST['admin_ids'])) {
+        header('Location: manage_admins.php?error=No admins selected for deletion');
         exit();
     }
 
     try {
+        $adminIds = json_decode($_POST['admin_ids']);
+        
+        if (empty($adminIds)) {
+            header('Location: manage_admins.php?error=No valid admin IDs provided');
+            exit();
+        }
+
         // Start transaction
         $pdo->beginTransaction();
 
-        // First, check if the user exists and is a sub-admin
-        $stmt = $pdo->prepare("SELECT id FROM users WHERE id = ? AND role = 'Sub-Admin'");
-        $stmt->execute([$id]);
-        if (!$stmt->fetch()) {
-            throw new PDOException("Admin not found or is not a sub-admin");
+        // Delete from otp_codes first
+        $placeholders = str_repeat('?,', count($adminIds) - 1) . '?';
+        $stmt = $pdo->prepare("DELETE FROM otp_codes WHERE user_id IN ($placeholders)");
+        $stmt->execute($adminIds);
+
+        // Delete the admins
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id IN ($placeholders) AND role = 'Sub-Admin'");
+        if (!$stmt->execute($adminIds)) {
+            throw new PDOException("Failed to delete admins");
         }
 
-        // Prevent deleting yourself
-        if ($id == $_SESSION['user_id']) {
-            throw new PDOException("You cannot delete your own account");
-        }
-
-        // Delete the admin account
-        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ? AND role = 'Sub-Admin'");
-        if (!$stmt->execute([$id])) {
-            throw new PDOException("Failed to delete admin record");
-        }
-
-        // If we got here, everything worked
+        // Commit the transaction
         $pdo->commit();
-        header('Location: manage_admins.php?success=Admin successfully deleted from the system');
+        header('Location: manage_admins.php?success=' . urlencode(count($adminIds) . ' sub-admin(s) successfully deleted'));
         exit();
     } catch (PDOException $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        error_log("Error in admin deletion process: " . $e->getMessage());
-        header('Location: manage_admins.php?error=' . urlencode('System Error: ' . $e->getMessage()));
+        error_log("Error in bulk admin deletion process: " . $e->getMessage());
+        header('Location: manage_admins.php?error=' . urlencode('System Error: Failed to delete sub-admins.'));
+        exit();
+    }
+}
+
+// Handle single admin delete
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+    $admin_id = $_POST['admin_id'] ?? null;
+    
+    if (!$admin_id) {
+        header('Location: manage_admins.php?error=No admin ID provided');
+        exit();
+    }
+
+    try {
+        $pdo->beginTransaction();
+
+        // Delete from otp_codes first
+        $stmt = $pdo->prepare("DELETE FROM otp_codes WHERE user_id = ?");
+        $stmt->execute([$admin_id]);
+
+        // Delete the admin
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ? AND role = 'Sub-Admin'");
+        if (!$stmt->execute([$admin_id])) {
+            throw new PDOException("Failed to delete admin");
+        }
+
+        $pdo->commit();
+        header('Location: manage_admins.php?success=Sub-admin successfully deleted');
+        exit();
+    } catch (PDOException $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        header('Location: manage_admins.php?error=' . urlencode('Failed to delete sub-admin'));
         exit();
     }
 }
