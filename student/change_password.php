@@ -2,30 +2,31 @@
 session_start();
 require_once '../config/database.php';
 
-// Check if user is logged in and is a student
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Student') {
-    header('Location: ../index.php');
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../auth/login.php');
     exit();
 }
 
-// Check if password has already been changed
-$stmt = $pdo->prepare("SELECT password_changed FROM users WHERE id = ?");
-$stmt->execute([$_SESSION['user_id']]);
-$user = $stmt->fetch();
-
-if ($user['password_changed']) {
-    header('Location: dashboard.php');
-    exit();
-}
-
-// Check election status
+// Get election status
 $stmt = $pdo->prepare("SELECT status FROM election_status WHERE id = 1");
 $stmt->execute();
 $election = $stmt->fetch();
 
-if ($election['status'] !== 'Pre-Voting') {
-    header('Location: dashboard.php');
-    exit();
+// Check if password has been changed
+$stmt = $pdo->prepare("SELECT password_changed FROM users WHERE id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$user = $stmt->fetch();
+
+// Allow password change if it hasn't been changed yet, regardless of election status
+if (!$user['password_changed']) {
+    // Process continues...
+} else {
+    // If password was already changed, then check election status
+    if ($election['status'] === 'Voting Phase') {
+        header('Location: dashboard.php');
+        exit();
+    }
 }
 
 $error = '';

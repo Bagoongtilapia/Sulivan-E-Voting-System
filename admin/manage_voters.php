@@ -431,6 +431,110 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
             font-weight: 500;
             transition: all 0.3s ease;
         }
+
+        /* DataTables info text styling */
+        .dataTables_info {
+            color: #6c757d;  /* Gray text color */
+            padding-top: 0.5rem;
+        }
+
+        /* DataTables length label styling */
+        .dataTables_length label {
+            font-weight: 500;
+            color: #666;
+        }
+
+        /* DataTables Pagination Styling */
+        .dataTables_paginate .paginate_button {
+            border: 1px solidrgb(0, 128, 255);
+            background: white;
+            border-radius: 6px;
+            color: var(--primary-color) !important;
+            margin-top: 5px;
+            margin-left: 5px;
+        }
+
+        .dataTables_paginate .paginate_button:hover {
+            background: var(--accent-color) !important;
+            border-color: var(--primary-light);
+            color: var(--primary-color) !important;
+        }
+
+        .dataTables_paginate .paginate_button.current {
+            background: var(--primary-color) !important;
+            border-color: var(--primary-color);
+            color: white !important;
+        }
+
+        .dataTables_paginate .paginate_button.disabled {
+            color: #6c757d !important;
+            border-color: #dee2e6;
+            background: #f8f9fa !important;
+        }
+
+        .dataTables_paginate .paginate_button.disabled:hover {
+            background: #f8f9fa !important;
+            border-color: #dee2e6;
+        }
+
+        /* Checkbox styling */
+        .form-check-input {
+            width: 1.2em;
+            height: 1.2em;
+            margin-top: 0;
+            vertical-align: middle;
+            background-color: #fff;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            border: 1px solid #ced4da;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6 -6'/%3e%3c/svg%3e");
+        }
+
+        .form-check-input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 0.25rem rgba(85, 88, 205, 0.25);
+        }
+
+        /* Bulk delete button styling */
+        .btn-bulk-delete {
+            display: none;
+            margin-right: 0.5rem;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-bulk-delete:hover {
+            
+            transform: translateY(-1px);
+        }
+
+        .btn-bulk-delete i {
+            margin-right: 0.5rem;
+        }
+
+        /* Table header checkbox styling */
+        .table th:first-child {
+            width: 40px;
+            text-align: center;
+        }
+
+        .table td:first-child {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -520,11 +624,16 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             </span>
                         </h5>
                         <?php if ($electionStatus === 'Pre-Voting'): ?>
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVoterModal" 
-                                    data-bs-toggle="tooltip" data-bs-placement="left" 
-                                    title="Add a new voter to the system">
-                                <i class='bx bx-plus-circle me-2'></i>Add New Voter
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button id="deleteSelected" class="btn btn-danger btn-bulk-delete">
+                                    <i class='bx bx-trash me-2'></i>Delete Selected
+                                </button>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVoterModal" 
+                                        data-bs-toggle="tooltip" data-bs-placement="left" 
+                                        title="Add a new voter to the system">
+                                    <i class='bx bx-plus-circle me-2'></i>Add New Voter
+                                </button>
+                            </div>
                         <?php endif; ?>
                     </div>
                     <div class="card-body">
@@ -532,6 +641,11 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <table class="table" id="votersTable">
                                 <thead>
                                     <tr>
+                                        <?php if ($electionStatus === 'Pre-Voting'): ?>
+                                        <th>
+                                            <input type="checkbox" id="selectAll" class="form-check-input">
+                                        </th>
+                                        <?php endif; ?>
                                         <th data-bs-toggle="tooltip" title="Voter ID in first-come-first-serve order">ID</th>
                                         <th data-bs-toggle="tooltip" title="Voter's full name">Name</th>
                                         <th data-bs-toggle="tooltip" title="Voter's email address for login">Email</th>
@@ -542,6 +656,11 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <tbody>
                                     <?php foreach ($voters as $voter): ?>
                                     <tr>
+                                        <?php if ($electionStatus === 'Pre-Voting'): ?>
+                                        <td>
+                                            <input type="checkbox" class="form-check-input voter-checkbox" value="<?php echo $voter['id']; ?>">
+                                        </td>
+                                        <?php endif; ?>
                                         <td style="display: none;"><?php echo $voter['id']; ?></td>
                                         <td><?php echo htmlspecialchars($voter['name']); ?></td>
                                         <td><?php echo htmlspecialchars($voter['email']); ?></td>
@@ -701,9 +820,13 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     }
                 },
                 columnDefs: [
-                    { visible: false, targets: 0 }, // Hide ID column
-                    { orderable: false, targets: 4 } // Disable sorting on action column
-                ]
+                    <?php if ($electionStatus === 'Pre-Voting'): ?>
+                    { orderable: false, targets: 0 }, // Disable sorting on checkbox column
+                    <?php endif; ?>
+                    { visible: false, targets: 1 }, // Hide ID column
+                    { orderable: false, targets: -1 } // Disable sorting on action column
+                ],
+                order: [[2, 'asc']] // Sort by name column by default
             });
 
             // Password visibility toggle
@@ -717,6 +840,65 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 } else {
                     passwordInput.attr('type', 'password');
                     icon.removeClass('bx-hide').addClass('bx-show');
+                }
+            });
+
+            // Handle Select All checkbox
+            $('#selectAll').change(function() {
+                $('.voter-checkbox').prop('checked', $(this).is(':checked'));
+                updateDeleteButtonVisibility();
+            });
+
+            // Handle individual checkboxes
+            $(document).on('change', '.voter-checkbox', function() {
+                updateDeleteButtonVisibility();
+                // Update select all checkbox
+                $('#selectAll').prop('checked', $('.voter-checkbox:checked').length === $('.voter-checkbox').length);
+            });
+
+            // Function to show/hide delete button
+            function updateDeleteButtonVisibility() {
+                const checkedCount = $('.voter-checkbox:checked').length;
+                $('#deleteSelected').toggle(checkedCount > 0);
+            }
+
+            // Handle bulk delete
+            $('#deleteSelected').click(function(e) {
+                e.preventDefault(); // Prevent any default form submission
+                
+                const selectedIds = $('.voter-checkbox:checked').map(function() {
+                    return $(this).val();
+                }).get();
+
+                if (selectedIds.length === 0) {
+                    alert('Please select at least one voter to delete.');
+                    return;
+                }
+
+                if (confirm(`Are you sure you want to delete ${selectedIds.length} voter(s)? This action cannot be undone.`)) {
+                    // Create a hidden form
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'process_voter.php';
+                    form.style.display = 'none'; // Hide the form
+
+                    // Add bulk_delete action
+                    const actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'action';
+                    actionInput.value = 'bulk_delete';
+                    form.appendChild(actionInput);
+
+                    // Add voter_ids
+                    const voterIdsInput = document.createElement('input');
+                    voterIdsInput.type = 'hidden';
+                    voterIdsInput.name = 'voter_ids';
+                    voterIdsInput.value = JSON.stringify(selectedIds);
+                    form.appendChild(voterIdsInput);
+
+                    // Append form to body and submit
+                    document.body.appendChild(form);
+                    form.submit();
                 }
             });
         });

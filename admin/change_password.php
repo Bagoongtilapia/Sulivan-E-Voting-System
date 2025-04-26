@@ -2,18 +2,21 @@
 session_start();
 require_once '../config/database.php';
 
-// Check if user is logged in and is a Sub-Admin
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Sub-Admin') {
-    header('Location: ../index.php');
+// Check if user is logged in and is an admin
+if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] !== 'Super Admin' && $_SESSION['user_role'] !== 'Sub Admin')) {
+    header('Location: ../auth/login.php');
     exit();
 }
 
-// Check if password has already been changed
+// Check if password has been changed
 $stmt = $pdo->prepare("SELECT password_changed FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch();
 
-if ($user['password_changed']) {
+// Allow password change if it hasn't been changed yet
+if (!$user['password_changed']) {
+    // Process continues...
+} else {
     header('Location: dashboard.php');
     exit();
 }
