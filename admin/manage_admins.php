@@ -368,6 +368,56 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
             transition: all 0.3s ease;
         }
 
+         /* DataTables info text styling */
+         .dataTables_info {
+            color: #6c757d;  /* Gray text color */
+            padding-top: 0.5rem;
+        }
+
+        /* DataTables length label styling */
+        .dataTables_length label {
+            font-weight: 500;
+            color: #666;
+        }
+
+        /* DataTables Pagination Styling */
+        .dataTables_paginate .paginate_button {
+            border: 1px solidrgb(0, 128, 255);
+            background: white;
+            border-radius: 6px;
+            color: var(--primary-color) !important;
+            margin-top: 5px;
+            margin-left: 5px;
+        }
+
+        .dataTables_paginate .paginate_button:hover {
+            background: var(--accent-color) !important;
+            border-color: var(--primary-light);
+            color: var(--primary-color) !important;
+        }
+
+        .dataTables_paginate .paginate_button.current {
+            background: var(--primary-color) !important;
+            border-color: var(--primary-color);
+            color: white !important;
+        }
+
+        .dataTables_paginate .paginate_button.disabled {
+            color: #6c757d !important;
+            border-color: #dee2e6;
+            background: #f8f9fa !important;
+        }
+
+        .dataTables_paginate .paginate_button.disabled:hover {
+            background: #f8f9fa !important;
+            border-color: #dee2e6;
+        }
+
+        .btn-bulk-delete:hover {
+            
+            transform: translateY(-1px);
+        }
+
     </style>
 </head>
 <body>
@@ -443,33 +493,41 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title d-flex align-items-center">
+                        <h5 class="card-title mb-0">
                             Admin List
                             <span class="text-muted ms-2" style="font-size: 0.9rem;">
                                 (<?php echo count($subAdmins); ?> total)
                             </span>
                         </h5>
-                        <a href="#" class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addAdminModal">
-                            <i class='bx bx-plus-circle'></i>
-                            Add New Admin
-                        </a>
+                        <div class="d-flex gap-2">
+                            <button id="deleteSelected" class="btn btn-danger btn-bulk-delete" style="display: none;">
+                                <i class='bx bx-trash me-2'></i>Delete Selected
+                            </button>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAdminModal">
+                                <i class='bx bx-plus-circle me-2'></i>Add New Admin
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table" id="adminsTable">
                                 <thead>
                                     <tr>
-                                        <th data-bs-toggle="tooltip" title="Admin ID">ID</th>
-                                        <th data-bs-toggle="tooltip" title="Admin's full name">Name</th>
-                                        <th data-bs-toggle="tooltip" title="Admin's email address for login">Email</th>
-                                        <th data-bs-toggle="tooltip" title="Date when admin was added">Created At</th>
-                                        <th data-bs-toggle="tooltip" title="Available actions">Actions</th>
+                                        <th>
+                                            <input type="checkbox" id="selectAll" class="form-check-input">
+                                        </th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Created At</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($subAdmins as $admin): ?>
                                     <tr>
-                                        <td style="display: none;"><?php echo $admin['id']; ?></td>
+                                        <td>
+                                            <input type="checkbox" class="form-check-input admin-checkbox" value="<?php echo $admin['id']; ?>">
+                                        </td>
                                         <td><?php echo htmlspecialchars($admin['name']); ?></td>
                                         <td><?php echo htmlspecialchars($admin['email']); ?></td>
                                         <td><?php echo date('M d, Y', strtotime($admin['created_at'])); ?></td>
@@ -479,8 +537,7 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                     <input type="hidden" name="action" value="delete">
                                                     <input type="hidden" name="admin_id" value="<?php echo $admin['id']; ?>">
                                                     <button type="submit" class="btn btn-sm btn-danger action-btn" 
-                                                            data-bs-toggle="tooltip" 
-                                                            title="Remove admin from the system">
+                                                            onclick="return confirm('Are you sure you want to delete this sub-admin?');">
                                                         <i class='bx bx-trash'></i> Delete
                                                     </button>
                                                 </form>
@@ -531,15 +588,7 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Initialize all tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl, {
-                    trigger: 'hover'
-                });
-            });
-
-            // Initialize DataTable with proper ordering
+            // Initialize DataTable
             $('#adminsTable').DataTable({
                 pageLength: 10,
                 language: {
@@ -556,9 +605,67 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     }
                 },
                 columnDefs: [
-                    { visible: false, targets: 0 }, // Hide ID column
-                    { orderable: false, targets: 4 } // Disable sorting on action column
-                ]
+                    { orderable: false, targets: [0, -1] } // Disable sorting on checkbox and actions columns
+                ],
+                order: [[1, 'asc']] // Sort by name column by default
+            });
+
+            // Handle Select All checkbox
+            $('#selectAll').change(function() {
+                $('.admin-checkbox').prop('checked', $(this).is(':checked'));
+                updateDeleteButtonVisibility();
+            });
+
+            // Handle individual checkboxes
+            $(document).on('change', '.admin-checkbox', function() {
+                updateDeleteButtonVisibility();
+                // Update select all checkbox
+                $('#selectAll').prop('checked', $('.admin-checkbox:checked').length === $('.admin-checkbox').length);
+            });
+
+            // Function to show/hide delete button
+            function updateDeleteButtonVisibility() {
+                const checkedCount = $('.admin-checkbox:checked').length;
+                $('#deleteSelected').toggle(checkedCount > 0);
+            }
+
+            // Handle bulk delete
+            $('#deleteSelected').click(function(e) {
+                e.preventDefault();
+                
+                const selectedIds = $('.admin-checkbox:checked').map(function() {
+                    return $(this).val();
+                }).get();
+
+                if (selectedIds.length === 0) {
+                    alert('Please select at least one sub-admin to delete.');
+                    return;
+                }
+
+                if (confirm(`Are you sure you want to delete ${selectedIds.length} sub-admin(s)? This action cannot be undone.`)) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'process_admin.php';
+                    form.style.display = 'none';
+
+                    // Add bulk_delete action
+                    const actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'action';
+                    actionInput.value = 'bulk_delete';
+                    form.appendChild(actionInput);
+
+                    // Add admin_ids
+                    const adminIdsInput = document.createElement('input');
+                    adminIdsInput.type = 'hidden';
+                    adminIdsInput.name = 'admin_ids';
+                    adminIdsInput.value = JSON.stringify(selectedIds);
+                    form.appendChild(adminIdsInput);
+
+                    // Append form to body and submit
+                    document.body.appendChild(form);
+                    form.submit();
+                }
             });
         });
     </script>

@@ -26,7 +26,73 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['Super Ad
     exit();
 }
 
-// Handle DELETE request
+// Check election status first for all operations
+$stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
+$electionStatus = $stmt->fetchColumn();
+
+if ($electionStatus !== 'Pre-Voting') {
+    header('Location: manage_voters.php?error=' . urlencode('Voter management is only allowed during the pre-voting phase.'));
+    exit();
+}
+
+// Handle bulk delete request first
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'bulk_delete') {
+    if (!isset($_POST['voter_ids'])) {
+        header('Location: manage_voters.php?error=No voters selected for deletion');
+        exit();
+    }
+
+    try {
+        $voterIds = json_decode($_POST['voter_ids']);
+        
+        if (empty($voterIds)) {
+            header('Location: manage_voters.php?error=No valid voter IDs provided');
+            exit();
+        }
+
+        // Start transaction
+        $pdo->beginTransaction();
+
+        // 1. Delete from otp_codes table
+        $placeholders = str_repeat('?,', count($voterIds) - 1) . '?';
+        $stmt = $pdo->prepare("DELETE FROM otp_codes WHERE user_id IN ($placeholders)");
+        $stmt->execute($voterIds);
+        
+        // 2. Delete from votes table
+        $stmt = $pdo->prepare("DELETE FROM votes WHERE student_id IN ($placeholders)");
+        $stmt->execute($voterIds);
+        
+        // 3. Get the users' names before deletion
+        $stmt = $pdo->prepare("SELECT name FROM users WHERE id IN ($placeholders)");
+        $stmt->execute($voterIds);
+        $userNames = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        // 4. Delete from candidates table if they are candidates
+        if (!empty($userNames)) {
+            $namePlaceholders = str_repeat('?,', count($userNames) - 1) . '?';
+            $stmt = $pdo->prepare("DELETE FROM candidates WHERE name IN ($namePlaceholders)");
+            $stmt->execute($userNames);
+        }
+        
+        // 5. Finally, delete the users
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id IN ($placeholders) AND role = 'Student'");
+        $stmt->execute($voterIds);
+
+        // Commit the transaction
+        $pdo->commit();
+        header('Location: manage_voters.php?success=' . urlencode(count($voterIds) . ' voters successfully deleted from the system'));
+        exit();
+    } catch (PDOException $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        error_log("Error in bulk voter deletion process: " . $e->getMessage());
+        header('Location: manage_voters.php?error=' . urlencode('System Error: Failed to delete voters.'));
+        exit();
+    }
+}
+
+// Handle single voter delete
 if (($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete') ||
     ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete')) {
     
@@ -152,93 +218,79 @@ if (($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['ac
     exit();
 }
 
-// Handle POST request (Add/Edit voter)
+// Handle regular form submissions (Add/Edit voter)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Check election status first
-    $stmt = $pdo->query("SELECT status FROM election_status ORDER BY id DESC LIMIT 1");
-    $electionStatus = $stmt->fetchColumn();
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
 
-    if ($electionStatus === 'Voting') {
-        header('Location: manage_voters.php?error=' . urlencode('Cannot add new voters during the voting phase. Please wait until the pre-voting phase to add voters.'));
-        exit();
-    } else if ($electionStatus === 'Ended') {
-        header('Location: manage_voters.php?error=' . urlencode('Cannot add new voters after the election has ended. Please wait until the next pre-voting phase.'));
+    if (empty($name) || empty($email)) {
+        header('Location: manage_voters.php?error=Name and email are required');
         exit();
     }
 
-    // Only proceed if we're in pre-voting phase
-    if ($electionStatus === 'Pre-Voting') {
-        $name = trim($_POST['name']);
-        $email = trim($_POST['email']);
+    try {
+        if (isset($_POST['action']) && $_POST['action'] === 'edit') {
+            // Edit existing voter
+            $voter_id = $_POST['voter_id'];
+            $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ? WHERE id = ? AND role = 'Student'");
+            $stmt->execute([$name, $email, $voter_id]);
+            header('Location: manage_voters.php?success=Voter updated successfully');
+        } else {
+            // Add new voter
+            $tempPassword = generatePassword();
+            $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
+            
+            // Insert the new user with hashed password
+            $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'Student')");
+            if ($stmt->execute([$name, $email, $hashedPassword])) {
+                // Send email notification
+                $mail = new PHPMailer(true);
+                try {
+                    $mail->isSMTP();
+                    $mail->Host = 'smtp.gmail.com';
+                    $mail->SMTPAuth = true;
+                    $mail->Username = 'sulivannationalhighschool@gmail.com';
+                    $mail->Password = 'nqhb kdea brfc xwvw';
+                    $mail->SMTPSecure = 'tls';
+                    $mail->Port = 587;
 
-        if (empty($name) || empty($email)) {
-            header('Location: manage_voters.php?error=Name and email are required');
+                    $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-VOTE');
+                    $mail->addAddress($email, $name);
+                    $mail->isHTML(true);
+                    $mail->Subject = 'Your New Account Details';
+                    $mail->Body = "
+                        Hi $name,<br><br>
+                        Your account has been created.<br>
+                        Temporary Password: <br>
+                        <div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;'>
+                            <h1 style='color: #393CB2; margin: 0; letter-spacing: 5px;'>$tempPassword</h1>
+                        </div>
+                        Please log in and reset your password immediately.<br><br>
+                    ";
+                    
+                    $mail->send();
+                    header('Location: manage_voters.php?success=Voter added successfully and login credentials sent via email');
+                } catch (Exception $e) {
+                    // Log the error but don't show technical details to user
+                    error_log("Failed to send email: " . $mail->ErrorInfo);
+                    header('Location: manage_voters.php?success=Voter added successfully but failed to send email notification');
+                }
+            } else {
+                header('Location: manage_voters.php?error=Failed to add voter');
+            }
             exit();
         }
-
-        try {
-            if (isset($_POST['action']) && $_POST['action'] === 'edit') {
-                // Edit existing voter
-                $voter_id = $_POST['voter_id'];
-                $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ? WHERE id = ? AND role = 'Student'");
-                $stmt->execute([$name, $email, $voter_id]);
-                header('Location: manage_voters.php?success=Voter updated successfully');
-            } else {
-                // Add new voter
-                $tempPassword = generatePassword();
-                $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
-                
-                // Insert the new user with hashed password
-                $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'Student')");
-                if ($stmt->execute([$name, $email, $hashedPassword])) {
-                    // Send email notification
-                    $mail = new PHPMailer(true);
-                    try {
-                        $mail->isSMTP();
-                        $mail->Host = 'smtp.gmail.com';
-                        $mail->SMTPAuth = true;
-                        $mail->Username = 'sulivannationalhighschool@gmail.com';
-                        $mail->Password = 'nqhb kdea brfc xwvw';
-                        $mail->SMTPSecure = 'tls';
-                        $mail->Port = 587;
-
-                        $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-VOTE');
-                        $mail->addAddress($email, $name);
-                        $mail->isHTML(true);
-                        $mail->Subject = 'Your New Account Details';
-                        $mail->Body = "
-                            Hi $name,<br><br>
-                            Your account has been created.<br>
-                            Temporary Password: <br>
-                            <div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;'>
-                                <h1 style='color: #393CB2; margin: 0; letter-spacing: 5px;'>$tempPassword</h1>
-                            </div>
-                            Please log in and reset your password immediately.<br><br>
-                        ";
-                        
-                        $mail->send();
-                        header('Location: manage_voters.php?success=Voter added successfully and login credentials sent via email');
-                    } catch (Exception $e) {
-                        // Log the error but don't show technical details to user
-                        error_log("Failed to send email: " . $mail->ErrorInfo);
-                        header('Location: manage_voters.php?success=Voter added successfully but failed to send email notification');
-                    }
-                } else {
-                    header('Location: manage_voters.php?error=Failed to add voter');
-                }
-                exit();
-            }
-        } catch (PDOException $e) {
-            if ($e->getCode() == 23000) { // Duplicate entry error
-                header('Location: manage_voters.php?error=Email already exists');
-            } else {
-                header('Location: manage_voters.php?error=Failed to process voter');
-            }
+    } catch (PDOException $e) {
+        if ($e->getCode() == 23000) { // Duplicate entry error
+            header('Location: manage_voters.php?error=Email already exists');
+        } else {
+            header('Location: manage_voters.php?error=Failed to process voter');
         }
-        exit();
     }
+    exit();
 }
 
+// If we get here, redirect back to the manage voters page
 header('Location: manage_voters.php');
 exit();
 ?>
