@@ -19,82 +19,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user['password'])) {
-        // Check if first_login exists in the user record
-        $isFirstLogin = isset($user['first_login']) ? $user['first_login'] : 1;
+        // Set session variables first
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_email'] = $user['email'];
+        $_SESSION['user_role'] = $user['role'];
+        $_SESSION['user_name'] = $user['name'];
 
-        // For first login, update status and redirect to change password
-        if ($isFirstLogin == 1) {
-            // Update first_login status
-            $stmt = $pdo->prepare("UPDATE users SET first_login = 0 WHERE id = ?");
-            $stmt->execute([$user['id']]);
+        // Check if password needs to be changed
+        $stmt = $pdo->prepare("SELECT password_changed FROM users WHERE id = ?");
+        $stmt->execute([$user['id']]);
+        $passwordStatus = $stmt->fetch();
 
-            // Set session variables
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_email'] = $user['email'];
-            $_SESSION['user_role'] = $user['role'];
-            $_SESSION['user_name'] = $user['name'];
-
-            // For admins, redirect to change password
-            if ($user['role'] === 'Super Admin' || $user['role'] === 'Sub-Admin') {
-                header('Location: change_password.php');
+        // If password hasn't been changed, redirect to change password
+        if (!$passwordStatus['password_changed']) {
+            if ($user['role'] === 'Student') {
+                header('Location: ../student/change_password.php');
+                exit();
+            } else if ($user['role'] === 'Super Admin' || $user['role'] === 'Sub-Admin') {
+                header('Location: ../admin/change_password.php');
                 exit();
             }
-            // For students, redirect to dashboard
-            else {
-                header('Location: ../student/dashboard.php');
-                exit();
-            }
-        } else {
-            // Not first login - generate and send OTP
-            $otp = sprintf("%06d", mt_rand(0, 999999));
-            $expires_at = date('Y-m-d H:i:s', strtotime('+5 minutes'));
+        }
 
-            // Reset OTP attempts counter
-            $_SESSION['otp_attempts'] = 0;
+        // If password is already changed, proceed with OTP
+        $otp = sprintf("%06d", mt_rand(0, 999999));
+        $expires_at = date('Y-m-d H:i:s', strtotime('+5 minutes'));
 
-            // Save OTP to database
-            $stmt = $pdo->prepare("INSERT INTO otp_codes (user_id, email, otp_code, expires_at) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$user['id'], $email, $otp, $expires_at]);
+        // Reset OTP attempts counter
+        $_SESSION['otp_attempts'] = 0;
 
-            // Send OTP via email
-            $mail = new PHPMailer(true);
-            try {
-                $mail->isSMTP();
-                $mail->Host = 'smtp.gmail.com';
-                $mail->SMTPAuth = true;
-                $mail->Username = 'sulivannationalhighschool@gmail.com';
-                $mail->Password = 'nqhb kdea brfc xwvw';
-                $mail->SMTPSecure = 'tls';
-                $mail->Port = 587;
+        // Save OTP to database
+        $stmt = $pdo->prepare("INSERT INTO otp_codes (user_id, email, otp_code, expires_at) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$user['id'], $email, $otp, $expires_at]);
 
-                $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-VOTE');
-                $mail->addAddress($email, $user['name']);
-                $mail->isHTML(true);
-                $mail->Subject = 'Your Login Verification Code';
-                $mail->Body = "
-                    <h2>Your Verification Code</h2>
-                    <p>Here is your verification code to complete login:</p>
-                    <div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;'>
-                        <h1 style='color: #393CB2; margin: 0; letter-spacing: 5px;'>{$otp}</h1>
-                    </div>
-                    <p>This code will expire in 5 minutes.</p>
-                    <p>If you didn't request this code, please contact the administrator immediately.</p>
-                ";
+        // Send OTP via email
+        $mail = new PHPMailer(true);
+        try {
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = 'sulivannationalhighschool@gmail.com';
+            $mail->Password = 'nqhb kdea brfc xwvw';
+            $mail->SMTPSecure = 'tls';
+            $mail->Port = 587;
 
-                $mail->send();
+            $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-VOTE');
+            $mail->addAddress($email, $user['name']);
+            $mail->isHTML(true);
+            $mail->Subject = 'Your Login Verification Code';
+            $mail->Body = "
+                <h2>Your Verification Code</h2>
+                <p>Here is your verification code to complete login:</p>
+                <div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;'>
+                    <h1 style='color: #393CB2; margin: 0; letter-spacing: 5px;'>{$otp}</h1>
+                </div>
+                <p>This code will expire in 5 minutes.</p>
+                <p>If you didn't request this code, please contact the administrator immediately.</p>
+            ";
 
-                // Set temporary session variables
-                $_SESSION['temp_user_id'] = $user['id'];
-                $_SESSION['temp_user_email'] = $email;
+            $mail->send();
 
-                error_log("Generated OTP for user {$user['id']}: {$otp}");
+            // Set temporary session variables
+            $_SESSION['temp_user_id'] = $user['id'];
+            $_SESSION['temp_user_email'] = $email;
 
-                header('Location: otp_verification.php');
-                exit();
-            } catch (Exception $e) {
-                header('Location: ../index.php?error=Failed to send verification code. Please try again.');
-                exit();
-            }
+            error_log("Generated OTP for user {$user['id']}: {$otp}");
+
+            header('Location: otp_verification.php');
+            exit();
+        } catch (Exception $e) {
+            header('Location: ../index.php?error=Failed to send verification code. Please try again.');
+            exit();
         }
     } else {
         header('Location: ../index.php?error=Invalid email or password');
