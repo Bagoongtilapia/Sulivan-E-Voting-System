@@ -188,24 +188,19 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         /* Button Styles */
-        .btn-primary {
-            background: var(--gradient-primary);
+        .btn-modal-cancel {
+            background: var(--accent-color);
+            color: var(--primary-color);
             border: none;
-            padding: 0.5rem 1.25rem;
-            border-radius: 6px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
             font-weight: 500;
             transition: all 0.3s ease;
-            color: white;
         }
 
-        .btn-primary:hover {
-            background: var(--primary-light);
+        .btn-modal-cancel:hover {
+            background: #d8daff;
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(57, 60, 178, 0.15);
-        }
-
-        .btn-primary i {
-            font-size: 1.1rem;
         }
 
         /* DataTables Styling */
@@ -270,7 +265,8 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
         /* Modal Styles */
         .modal-content {
             border: none;
-            border-radius: 10px;
+            border-radius: 15px;
+            overflow: hidden;
         }
 
         .modal-header {
@@ -284,8 +280,8 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .modal-footer {
-            border-top: 1px solid #eee;
             background: white;
+            border-top: 1px solid #eee;
         }
 
         /* Input Group Styles */
@@ -362,6 +358,16 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .w-fit-content {
             width: fit-content;
         }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            border: none;
+            padding: 0.70rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
     </style>
 </head>
 <body>
@@ -510,7 +516,7 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <input type="email" class="form-control" id="email" name="email" required>
                         </div>
                         <div class="d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
                             <button type="submit" class="btn btn-primary">Add Admin</button>
                         </div>
                     </form>

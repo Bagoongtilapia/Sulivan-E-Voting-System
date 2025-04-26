@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mail->SMTPSecure = 'tls';
                 $mail->Port = 587;
 
-                $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-Voting System');
+                $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-VOTE');
                 $mail->addAddress($email, $user['name']);
                 $mail->isHTML(true);
                 $mail->Subject = 'Your Login Verification Code';
