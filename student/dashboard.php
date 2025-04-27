@@ -1166,6 +1166,154 @@ error_log("Session data: " . print_r($_SESSION, true));
         
         }
     </style>
+    <!-- Modern Platform Modal Styles (force override) -->
+    <style>
+    .platform-modal-modern .modal-content {
+        border-radius: 20px !important;
+        border: none !important;
+        box-shadow: 0 15px 35px rgba(57, 60, 178, 0.15) !important;
+        background: #f8f9ff !important;
+        overflow: hidden !important;
+    }
+    .platform-modal-modern .modal-header {
+        background: linear-gradient(90deg, #393CB2 60%, #5558CD 100%) !important;
+        color: white !important;
+        border-radius: 20px 20px 0 0 !important;
+        border-bottom: none !important;
+        padding: 0 !important;
+        min-height: 48px;
+        position: relative !important;
+    }
+    .platform-modal-modern .btn-close {
+        position: absolute !important;
+        top: 18px !important;
+        right: 18px !important;
+        z-index: 10 !important;
+        width: 40px !important;
+        height: 40px !important;
+        background: transparent !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        opacity: 0.85 !important;
+        font-size: 2rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: opacity 0.2s !important;
+    }
+    .platform-modal-modern .btn-close:hover {
+        opacity: 1 !important;
+    }
+    .platform-modal-modern .candidate-section {
+        background: linear-gradient(135deg, #393CB2 60%, #5558CD 100%);
+        padding: 2rem 1rem 1.5rem 1rem;
+        text-align: center;
+        position: relative;
+    }
+    .platform-modal-modern .candidate-image-container {
+        width: 110px;
+        height: 110px;
+        margin: 0 auto 1.25rem auto;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid #fff;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .platform-modal-modern .candidate-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+    .platform-modal-modern .candidate-name {
+        color: #fff;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0.5rem 0 0.2rem 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.12);
+    }
+    .platform-modal-modern .platform-content {
+        background: #fff;
+        border-radius: 16px;
+        margin: -1.5rem 1.5rem 1.5rem 1.5rem;
+        padding: 2rem 1.5rem 1.5rem 1.5rem;
+        box-shadow: 0 3px 15px rgba(57, 60, 178, 0.08);
+        position: relative;
+        z-index: 2;
+    }
+    .platform-modal-modern .platform-label {
+        color: var(--primary-color);
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        opacity: 0.9;
+    }
+    .platform-modal-modern .platform-label::before,
+    .platform-modal-modern .platform-label::after {
+        content: '';
+        height: 1px;
+        background: currentColor;
+        flex: 1;
+        opacity: 0.2;
+    }
+    .platform-modal-modern .platform-text {
+        color: #2c3e50;
+        line-height: 1.7;
+        font-size: 1.05rem;
+        margin: 0;
+        white-space: pre-line;
+    }
+    .platform-modal-modern .error-message {
+        color: #dc3545;
+        font-size: 0.95rem;
+        margin-top: 0.5rem;
+        display: none;
+        background: #fff0f0;
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+    }
+    .platform-modal-modern .error-message.show {
+        display: inline-block;
+    }
+    @media (max-width: 600px) {
+        .platform-modal-modern .modal-content {
+            border-radius: 12px !important;
+        }
+        .platform-modal-modern .platform-content {
+            margin: -1.5rem 0.5rem 1rem 0.5rem;
+            padding: 1.2rem 0.7rem 1rem 0.7rem;
+        }
+        .platform-modal-modern .candidate-section {
+            padding: 1.2rem 0.5rem 1rem 0.5rem;
+        }
+        .platform-modal-modern .candidate-image-container {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 0.7rem;
+        }
+        .platform-modal-modern .candidate-name {
+            font-size: 1.05rem;
+        }
+        .platform-modal-modern .btn-close {
+            top: 8px !important;
+            right: 8px !important;
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 1.3rem !important;
+        }
+    }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg">
@@ -1387,24 +1535,27 @@ error_log("Session data: " . print_r($_SESSION, true));
     </div>
 
     <!-- Platform Modal -->
-    <div class="modal fade platform-modal" id="platformModal" tabindex="-1" role="dialog" aria-labelledby="platformModalLabel" aria-hidden="true">
+    <div class="modal fade platform-modal platform-modal-modern" id="platformModal" tabindex="-1" role="dialog" aria-labelledby="platformModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="padding:0;">
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <line x1="8" y1="8" x2="20" y2="20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                            <line x1="20" y1="8" x2="8" y2="20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
                 </div>
-                <div class="modal-body">
-                    <div class="candidate-section">
-                        <div class="candidate-image-container">
-                            <img id="platformCandidateImage" src="" alt="Candidate" class="candidate-image">
-                        </div>
-                        <h3 id="candidateName" class="candidate-name"></h3>
-                        <div id="imageError" class="error-message">Unable to load image</div>
+                <div class="candidate-section">
+                    <div class="candidate-image-container">
+                        <img id="platformCandidateImage" src="" alt="Candidate" class="candidate-image">
                     </div>
-                    <div class="platform-content">
-                        <div class="platform-label">Campaign Platform</div>
-                        <p id="platformText" class="platform-text"></p>
-                    </div>
+                    <h3 id="candidateName" class="candidate-name"></h3>
+                    <div id="imageError" class="error-message">Unable to load image</div>
+                </div>
+                <div class="platform-content">
+                    <div class="platform-label">Campaign Platform</div>
+                    <p id="platformText" class="platform-text"></p>
                 </div>
             </div>
         </div>
