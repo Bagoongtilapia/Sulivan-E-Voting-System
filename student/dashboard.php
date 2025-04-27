@@ -316,19 +316,25 @@ error_log("Session data: " . print_r($_SESSION, true));
         }
 
         @media (max-width: 576px) {
-           
-            .container {
-                padding: 0 1rem;
-            }
-
             .brand-logo {
-                width: 60px;
-                height: 60px;
-                margin-left: 20px;
+                width: 50px;
+                height: 50px;
             }
 
             .brand-text {
-                font-size: 25px;
+                font-size: 24px;
+            }
+
+            .candidates-grid {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 1.5rem !important;
+            }
+            .candidate-card {
+                width: 100%;
+                max-width: 350px;
+                margin: 0 auto;
             }
         }
 
@@ -386,6 +392,7 @@ error_log("Session data: " . print_r($_SESSION, true));
             height: 100%;
             cursor: pointer;
             position: relative;
+            
         }
         .candidate-card:hover {
             box-shadow: 0 1px 6px rgba(0,0,0,0.2);
@@ -1154,6 +1161,9 @@ error_log("Session data: " . print_r($_SESSION, true));
             padding: 0.5rem 1rem !important;
             font-size: 0.9rem !important;
         }
+
+       
+        
         }
     </style>
     <!-- Modern Platform Modal Styles (force override) -->
@@ -1276,12 +1286,15 @@ error_log("Session data: " . print_r($_SESSION, true));
     .platform-modal-modern .error-message.show {
         display: inline-block;
     }
-    @media (max-width: 600px) {
+    @media (max-width: 576px) {
         .platform-modal-modern .modal-content {
-            border-radius: 12px !important;
+            border-radius: 21px !important;
+            max-width: 350px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
         }
         .platform-modal-modern .platform-content {
-            margin: -1.5rem 0.5rem 1rem 0.5rem;
+            margin: -0.5rem 1rem 1rem 1rem;
             padding: 1.2rem 0.7rem 1rem 0.7rem;
         }
         .platform-modal-modern .candidate-section {
@@ -1301,6 +1314,15 @@ error_log("Session data: " . print_r($_SESSION, true));
             width: 32px !important;
             height: 32px !important;
             font-size: 1.3rem !important;
+        }
+        .platform-modal-modern .modal-header {
+            display: flex;
+            align-items: center;
+        }
+        .platform-modal-modern .btn-close {
+            position: static !important;
+            margin-right: 10px !important;
+            display: block;
         }
     }
     </style>
