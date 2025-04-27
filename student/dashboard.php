@@ -316,19 +316,25 @@ error_log("Session data: " . print_r($_SESSION, true));
         }
 
         @media (max-width: 576px) {
-           
-            .container {
-                padding: 0 1rem;
-            }
-
             .brand-logo {
-                width: 60px;
-                height: 60px;
-                margin-left: 20px;
+                width: 50px;
+                height: 50px;
             }
 
             .brand-text {
-                font-size: 25px;
+                font-size: 24px;
+            }
+
+            .candidates-grid {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 1.5rem !important;
+            }
+            .candidate-card {
+                width: 100%;
+                max-width: 350px;
+                margin: 0 auto;
             }
         }
 
@@ -386,6 +392,7 @@ error_log("Session data: " . print_r($_SESSION, true));
             height: 100%;
             cursor: pointer;
             position: relative;
+            
         }
         .candidate-card:hover {
             box-shadow: 0 1px 6px rgba(0,0,0,0.2);
@@ -1154,6 +1161,9 @@ error_log("Session data: " . print_r($_SESSION, true));
             padding: 0.5rem 1rem !important;
             font-size: 0.9rem !important;
         }
+
+       
+        
         }
     </style>
 </head>
