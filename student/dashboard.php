@@ -865,7 +865,7 @@ error_log("Session data: " . print_r($_SESSION, true));
 
             .preview-modal .modal-header {
                 padding: 1.25rem;
-            }
+        }
 
             .preview-modal .modal-title {
                 font-size: 1.2rem;
@@ -886,8 +886,8 @@ error_log("Session data: " . print_r($_SESSION, true));
 
             .preview-position {
                 padding: 1.25rem;
-            }
-
+        }
+        
             .preview-position h4 {
                 font-size: 1.1rem;
                 flex-direction: column;
@@ -898,11 +898,11 @@ error_log("Session data: " . print_r($_SESSION, true));
             .preview-position h4 .position-count {
                 font-size: 0.8rem;
                 padding: 0.3rem 0.6rem;
-            }
-
+        }
+        
             .preview-candidate {
                 padding: 0.75rem;
-            }
+        }
 
             .preview-candidate i {
                 font-size: 1.2rem;
@@ -917,12 +917,12 @@ error_log("Session data: " . print_r($_SESSION, true));
             .preview-buttons {
                 margin-top: 1.5rem;
                 padding-top: 1.25rem;
-            }
+        }
 
             .btn-confirm {
                 padding: 0.5rem 1rem;
                 font-size: 0.9rem;
-            }
+        }
         }
     </style>
     <!-- Modern Preview Modal Styles (force override) -->
@@ -933,7 +933,7 @@ error_log("Session data: " . print_r($_SESSION, true));
         border: none !important;
         box-shadow: 0 15px 35px rgba(57, 60, 178, 0.15) !important;
         background: #f8f9ff !important;
-    }
+        }
     .preview-modal-modern .modal-header {
         background: linear-gradient(90deg, #393CB2 60%, #5558CD 100%) !important;
         color: white !important;
@@ -942,7 +942,7 @@ error_log("Session data: " . print_r($_SESSION, true));
         border-bottom: none !important;
         position: relative !important;
         overflow: hidden !important;
-    }
+        }
     .preview-modal-modern .modal-title {
         font-size: 1.4rem !important;
         font-weight: 600 !important;
@@ -954,7 +954,7 @@ error_log("Session data: " . print_r($_SESSION, true));
     .preview-modal-modern .btn-close-white {
         opacity: 0.8 !important;
         transition: all 0.2s ease !important;
-    }
+        }
     .preview-modal-modern .btn-close-white:hover {
         opacity: 1 !important;
     }
@@ -1173,7 +1173,7 @@ error_log("Session data: " . print_r($_SESSION, true));
         padding: 0 !important;
         min-height: 48px;
         position: relative !important;
-    }
+        }
     .platform-modal-modern .btn-close {
         position: absolute !important;
         top: 18px !important;
@@ -1203,28 +1203,28 @@ error_log("Session data: " . print_r($_SESSION, true));
         position: relative;
     }
     .platform-modal-modern .candidate-image-container {
-        width: 110px;
-        height: 110px;
+            width: 110px;
+            height: 110px;
         margin: 0 auto 1.25rem auto;
         border-radius: 50%;
-        overflow: hidden;
+            overflow: hidden;
         border: 4px solid #fff;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
         background: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
-    }
+        }
     .platform-modal-modern .candidate-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         border-radius: 50%;
-    }
+        }
     .platform-modal-modern .candidate-name {
         color: #fff;
-        font-size: 1.3rem;
-        font-weight: 600;
+            font-size: 1.3rem;
+            font-weight: 600;
         margin: 0.5rem 0 0.2rem 0;
         text-shadow: 0 2px 4px rgba(0,0,0,0.12);
     }
@@ -1234,38 +1234,38 @@ error_log("Session data: " . print_r($_SESSION, true));
         margin: -1.5rem 1.5rem 1.5rem 1.5rem;
         padding: 2rem 1.5rem 1.5rem 1.5rem;
         box-shadow: 0 3px 15px rgba(57, 60, 178, 0.08);
-        position: relative;
+            position: relative;
         z-index: 2;
-    }
+        }
     .platform-modal-modern .platform-label {
-        color: var(--primary-color);
+            color: var(--primary-color);
         font-size: 0.95rem;
         font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        opacity: 0.9;
-    }
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0.9;
+        }
     .platform-modal-modern .platform-label::before,
     .platform-modal-modern .platform-label::after {
-        content: '';
-        height: 1px;
-        background: currentColor;
-        flex: 1;
+            content: '';
+            height: 1px;
+            background: currentColor;
+            flex: 1;
         opacity: 0.2;
-    }
+        }
     .platform-modal-modern .platform-text {
-        color: #2c3e50;
-        line-height: 1.7;
+            color: #2c3e50;
+            line-height: 1.7;
         font-size: 1.05rem;
-        margin: 0;
-        white-space: pre-line;
-    }
+            margin: 0;
+            white-space: pre-line;
+        }
     .platform-modal-modern .error-message {
-        color: #dc3545;
+            color: #dc3545;
         font-size: 0.95rem;
         margin-top: 0.5rem;
         display: none;
@@ -1302,7 +1302,7 @@ error_log("Session data: " . print_r($_SESSION, true));
             height: 32px !important;
             font-size: 1.3rem !important;
         }
-    }
+        }
     </style>
 </head>
 <body>
@@ -1536,16 +1536,16 @@ error_log("Session data: " . print_r($_SESSION, true));
                         </svg>
                     </button>
                 </div>
-                <div class="candidate-section">
-                    <div class="candidate-image-container">
-                        <img id="platformCandidateImage" src="" alt="Candidate" class="candidate-image">
+                    <div class="candidate-section">
+                        <div class="candidate-image-container">
+                            <img id="platformCandidateImage" src="" alt="Candidate" class="candidate-image">
+                        </div>
+                        <h3 id="candidateName" class="candidate-name"></h3>
+                        <div id="imageError" class="error-message">Unable to load image</div>
                     </div>
-                    <h3 id="candidateName" class="candidate-name"></h3>
-                    <div id="imageError" class="error-message">Unable to load image</div>
-                </div>
-                <div class="platform-content">
-                    <div class="platform-label">Campaign Platform</div>
-                    <p id="platformText" class="platform-text"></p>
+                    <div class="platform-content">
+                        <div class="platform-label">Campaign Platform</div>
+                        <p id="platformText" class="platform-text"></p>
                 </div>
             </div>
         </div>
@@ -1665,7 +1665,7 @@ error_log("Session data: " . print_r($_SESSION, true));
                 } else {
                     // For multiple-choice positions (checkboxes)
                     selectedCandidates = document.querySelectorAll(`input[name="vote[${positionId}][]"]:checked`);
-                    
+                
                     // Check maximum votes limit
                 if (selectedCandidates.length > position.max_votes) {
                     toastr.warning(`You can only select ${position.max_votes} candidate(s) for ${position.name}`);
