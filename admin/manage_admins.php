@@ -489,6 +489,7 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <?php if (isset($_GET['success'])): ?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class='bx bx-check-circle me-2'></i>
                         <?php echo htmlspecialchars($_GET['success']); ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
@@ -652,30 +653,29 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     return;
                 }
 
-                if (confirm(`Are you sure you want to delete ${selectedIds.length} sub-admin(s)? This action cannot be undone.`)) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = 'process_admin.php';
-                    form.style.display = 'none';
+                // Directly submit the form without confirmation
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'process_admin.php';
+                form.style.display = 'none';
 
-                    // Add bulk_delete action
-                    const actionInput = document.createElement('input');
-                    actionInput.type = 'hidden';
-                    actionInput.name = 'action';
-                    actionInput.value = 'bulk_delete';
-                    form.appendChild(actionInput);
+                // Add bulk_delete action
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'bulk_delete';
+                form.appendChild(actionInput);
 
-                    // Add admin_ids
-                    const adminIdsInput = document.createElement('input');
-                    adminIdsInput.type = 'hidden';
-                    adminIdsInput.name = 'admin_ids';
-                    adminIdsInput.value = JSON.stringify(selectedIds);
-                    form.appendChild(adminIdsInput);
+                // Add admin_ids
+                const adminIdsInput = document.createElement('input');
+                adminIdsInput.type = 'hidden';
+                adminIdsInput.name = 'admin_ids';
+                adminIdsInput.value = JSON.stringify(selectedIds);
+                form.appendChild(adminIdsInput);
 
-                    // Append form to body and submit
-                    document.body.appendChild(form);
-                    form.submit();
-                }
+                // Append form to body and submit
+                document.body.appendChild(form);
+                form.submit();
             });
         });
     </script>
