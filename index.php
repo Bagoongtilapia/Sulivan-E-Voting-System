@@ -1,3 +1,6 @@
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -262,10 +265,18 @@
     </style>
 </head>
 <body>
-    <?php if (isset($_GET['error']) && $_GET['error']): ?>
+    <?php
+    $error_message = '';
+    if (isset($_SESSION['login_error'])) {
+        $error_message = $_SESSION['login_error'];
+        unset($_SESSION['login_error']);
+    } elseif (isset($_GET['error']) && $_GET['error']) {
+        $error_message = $_GET['error'];
+    }
+    if ($error_message): ?>
         <div class="login-toast" id="loginToast">
             <i class="fas fa-exclamation-circle"></i>
-            <?php echo htmlspecialchars($_GET['error']); ?>
+            <?php echo htmlspecialchars($error_message); ?>
         </div>
     <?php endif; ?>
     <div class="background-gradient"></div>
@@ -276,7 +287,7 @@
                 <h2 class="system-name">E-VOTE!</h2>
                 <p class="system-tagline">Sulivan E-Voting System </p>
             </div>
-            <form action="auth/login.php" method="POST" class="needs-validation" novalidate>
+            <form action="auth/login.php" method="POST" class="needs-validation">
                 <div class="form-floating mb-4">
                     <input type="email" class="form-control" id="email" name="email" required placeholder="Enter your email">
                     <label for="email">Email Address</label>
@@ -317,21 +328,6 @@
                 eyeSlash.style.display = '';
             }
         });
-
-        // Form validation
-        (function () {
-            'use strict'
-            const forms = document.querySelectorAll('.needs-validation')
-            Array.from(forms).forEach(form => {
-                form.addEventListener('submit', event => {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
 
         // Auto-dismiss login toast after 4 seconds
         window.addEventListener('DOMContentLoaded', function() {

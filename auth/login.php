@@ -1,4 +1,5 @@
 <?php
+// Remove debug output
 date_default_timezone_set('Asia/Manila'); // Adjust to your timezone
 session_start();
 require_once '../config/database.php';
@@ -92,11 +93,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
     } else {
-        header('Location: ../index.php?error=Invalid email or password');
+        $_SESSION['login_error'] = 'Invalid email or password';
+        header('Location: ../index.php');
         exit();
     }
 }
 
+// If not a POST request, redirect with error
+$_SESSION['login_error'] = 'Invalid request method';
 header('Location: ../index.php');
 exit();
-?>

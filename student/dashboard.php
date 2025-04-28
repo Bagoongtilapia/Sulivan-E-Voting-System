@@ -1176,18 +1176,18 @@ error_log("Session data: " . print_r($_SESSION, true));
         overflow: hidden !important;
     }
     .platform-modal-modern .modal-header {
-        background: linear-gradient(90deg, #393CB2 60%, #5558CD 100%) !important;
+        background: var(--primary-color) !important;
         color: white !important;
         border-radius: 20px 20px 0 0 !important;
         border-bottom: none !important;
         padding: 0 !important;
         min-height: 48px;
         position: relative !important;
-        }
+    }
     .platform-modal-modern .btn-close {
         position: absolute !important;
-        top: 18px !important;
-        right: 18px !important;
+        top: 24px !important;
+        right: 24px !important;
         z-index: 10 !important;
         width: 40px !important;
         height: 40px !important;
@@ -1309,26 +1309,13 @@ error_log("Session data: " . print_r($_SESSION, true));
             font-size: 1.05rem;
         }
         .platform-modal-modern .btn-close {
-            top: 8px !important;
-            right: 8px !important;
+            top: 12px !important;
+            right: 12px !important;
             width: 32px !important;
             height: 32px !important;
             font-size: 1.3rem !important;
         }
-<<<<<<< HEAD
-        }
-=======
-        .platform-modal-modern .modal-header {
-            display: flex;
-            align-items: center;
-        }
-        .platform-modal-modern .btn-close {
-            position: static !important;
-            margin-right: 10px !important;
-            display: block;
-        }
     }
->>>>>>> 24792d995e4669494f55f824f2762a6ba32cd5e3
     </style>
 </head>
 <body>
