@@ -477,6 +477,15 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <h2 class="mb-0" style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-size: 24px; color:#393CB2">Manage Admins</h2>
                     </div>
                 </div>
+                <?php
+                if (isset($_SESSION['admin_message'])) {
+                    $msg = $_SESSION['admin_message'];
+                    echo "<div class='alert alert-{$msg['type']} alert-dismissible fade show mb-4' role='alert' style='width: 100%;'>"
+                        . htmlspecialchars($msg['text']) .
+                        "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
+                    unset($_SESSION['admin_message']);
+                }
+                ?>
 
                 <?php if (isset($_GET['success'])): ?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -539,8 +548,7 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                 <form action="process_admin.php" method="POST" class="d-inline">
                                                     <input type="hidden" name="action" value="delete">
                                                     <input type="hidden" name="admin_id" value="<?php echo $admin['id']; ?>">
-                                                    <button type="submit" class="btn btn-sm btn-danger action-btn" 
-                                                            onclick="return confirm('Are you sure you want to delete this sub-admin?');">
+                                                    <button type="submit" class="btn btn-sm btn-danger action-btn">
                                                         <i class='bx bx-trash'></i> Delete
                                                     </button>
                                                 </form>
