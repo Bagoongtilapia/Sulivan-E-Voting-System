@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // Commit the transaction
         $pdo->commit();
-        header('Location: manage_voters.php?success=' . urlencode(count($voterIds) . ' voters successfully deleted from the system'));
+        header('Location: manage_voters.php?success=Voter successfully deleted from the system');
         exit();
     } catch (PDOException $e) {
         if ($pdo->inTransaction()) {

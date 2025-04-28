@@ -784,6 +784,7 @@ try {
                         Election Control Panel
                     </h4>
                     <form action="update_election_status.php" method="POST">
+                        <input type="hidden" name="election_name" value="<?php echo htmlspecialchars($electionName); ?>">
                         <select name="status" class="form-select">
                             <option value="Pre-Voting" <?php echo $electionStatus === 'Pre-Voting' ? 'selected' : ''; ?>>Pre-Voting</option>
                             <option value="Voting" <?php echo $electionStatus === 'Voting' ? 'selected' : ''; ?>>Voting</option>

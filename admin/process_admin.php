@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // Commit the transaction
         $pdo->commit();
-        header('Location: manage_admins.php?success=' . urlencode(count($adminIds) . ' sub-admin(s) successfully deleted'));
+        header('Location: manage_admins.php?success=Sub-admin successfully deleted from the system');
         exit();
     } catch (PDOException $e) {
         if ($pdo->inTransaction()) {

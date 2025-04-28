@@ -634,12 +634,9 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <table class="table" id="votersTable">
                                 <thead>
                                     <tr>
-                                        <?php if ($electionStatus === 'Pre-Voting'): ?>
                                         <th>
                                             <input type="checkbox" id="selectAll" class="form-check-input">
                                         </th>
-                                        <?php endif; ?>
-                                        <th data-bs-toggle="tooltip" title="Voter ID in first-come-first-serve order">ID</th>
                                         <th data-bs-toggle="tooltip" title="Voter's full name">Name</th>
                                         <th data-bs-toggle="tooltip" title="Voter's email address for login">Email</th>
                                         <th data-bs-toggle="tooltip" title="Current voting status">Status</th>
@@ -649,12 +646,9 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <tbody>
                                     <?php foreach ($voters as $voter): ?>
                                     <tr>
-                                        <?php if ($electionStatus === 'Pre-Voting'): ?>
                                         <td>
                                             <input type="checkbox" class="form-check-input voter-checkbox" value="<?php echo $voter['id']; ?>">
                                         </td>
-                                        <?php endif; ?>
-                                        <td style="display: none;"><?php echo $voter['id']; ?></td>
                                         <td><?php echo htmlspecialchars($voter['name']); ?></td>
                                         <td><?php echo htmlspecialchars($voter['email']); ?></td>
                                         <td>
@@ -811,13 +805,10 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     }
                 },
                 columnDefs: [
-                    <?php if ($electionStatus === 'Pre-Voting'): ?>
                     { orderable: false, targets: 0 }, // Disable sorting on checkbox column
-                    <?php endif; ?>
-                    { visible: false, targets: 1 }, // Hide ID column
                     { orderable: false, targets: -1 } // Disable sorting on action column
                 ],
-                order: [[2, 'asc']] // Sort by name column by default
+                order: [[1, 'asc']] // Sort by name column by default
             });
 
             // Password visibility toggle
@@ -866,31 +857,29 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     return;
                 }
 
-                if (confirm(`Are you sure you want to delete ${selectedIds.length} voter(s)? This action cannot be undone.`)) {
-                    // Create a hidden form
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = 'process_voter.php';
-                    form.style.display = 'none'; // Hide the form
+                // Directly submit the form without confirmation
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'process_voter.php';
+                form.style.display = 'none'; // Hide the form
 
-                    // Add bulk_delete action
-                    const actionInput = document.createElement('input');
-                    actionInput.type = 'hidden';
-                    actionInput.name = 'action';
-                    actionInput.value = 'bulk_delete';
-                    form.appendChild(actionInput);
+                // Add bulk_delete action
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'bulk_delete';
+                form.appendChild(actionInput);
 
-                    // Add voter_ids
-                    const voterIdsInput = document.createElement('input');
-                    voterIdsInput.type = 'hidden';
-                    voterIdsInput.name = 'voter_ids';
-                    voterIdsInput.value = JSON.stringify(selectedIds);
-                    form.appendChild(voterIdsInput);
+                // Add voter_ids
+                const voterIdsInput = document.createElement('input');
+                voterIdsInput.type = 'hidden';
+                voterIdsInput.name = 'voter_ids';
+                voterIdsInput.value = JSON.stringify(selectedIds);
+                form.appendChild(voterIdsInput);
 
-                    // Append form to body and submit
-                    document.body.appendChild(form);
-                    form.submit();
-                }
+                // Append form to body and submit
+                document.body.appendChild(form);
+                form.submit();
             });
         });
 
