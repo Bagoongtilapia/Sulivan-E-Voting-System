@@ -28,7 +28,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Super Admin') {
 // Handle bulk delete request first
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'bulk_delete') {
     if (!isset($_POST['admin_ids'])) {
-        header('Location: manage_admins.php?error=No admins selected for deletion');
+        $_SESSION['admin_message'] = ['type' => 'danger', 'text' => 'No admins selected for deletion'];
+        header('Location: manage_admins.php');
         exit();
     }
 
@@ -36,7 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $adminIds = json_decode($_POST['admin_ids']);
         
         if (empty($adminIds)) {
-            header('Location: manage_admins.php?error=No valid admin IDs provided');
+            $_SESSION['admin_message'] = ['type' => 'danger', 'text' => 'No valid admin IDs provided'];
+            header('Location: manage_admins.php');
             exit();
         }
 
@@ -56,14 +58,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // Commit the transaction
         $pdo->commit();
-        header('Location: manage_admins.php?success=' . urlencode(count($adminIds) . ' sub-admin(s) successfully deleted'));
+        $_SESSION['admin_message'] = ['type' => 'success', 'text' => count($adminIds) . ' sub-admin(s) successfully deleted'];
+        header('Location: manage_admins.php');
         exit();
     } catch (PDOException $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
         error_log("Error in bulk admin deletion process: " . $e->getMessage());
-        header('Location: manage_admins.php?error=' . urlencode('System Error: Failed to delete sub-admins.'));
+        $_SESSION['admin_message'] = ['type' => 'danger', 'text' => 'System Error: Failed to delete sub-admins.'];
+        header('Location: manage_admins.php');
         exit();
     }
 }
@@ -73,7 +77,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $admin_id = $_POST['admin_id'] ?? null;
     
     if (!$admin_id) {
-        header('Location: manage_admins.php?error=No admin ID provided');
+        $_SESSION['admin_message'] = ['type' => 'danger', 'text' => 'No admin ID provided'];
+        header('Location: manage_admins.php');
         exit();
     }
 
@@ -91,13 +96,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         $pdo->commit();
-        header('Location: manage_admins.php?success=Sub-admin successfully deleted');
+        $_SESSION['admin_message'] = ['type' => 'success', 'text' => 'Admin successfully deleted'];
+        header('Location: manage_admins.php');
         exit();
     } catch (PDOException $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        header('Location: manage_admins.php?error=' . urlencode('Failed to delete sub-admin'));
+        $_SESSION['admin_message'] = ['type' => 'danger', 'text' => 'Failed to delete sub-admin'];
+        header('Location: manage_admins.php');
         exit();
     }
 }
