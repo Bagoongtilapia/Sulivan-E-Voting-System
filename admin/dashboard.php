@@ -950,7 +950,13 @@ try {
                                 setTimeout(() => {
                                     this.style.borderColor = '';
                                 }, 1000);
+                            } else {
+                                alert('Failed to update election name: ' + data.message);
                             }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Failed to update election name');
                         });
                     }, 500);
                 });

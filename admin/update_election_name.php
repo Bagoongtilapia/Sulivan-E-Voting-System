@@ -13,7 +13,12 @@ require_once '../config/database.php';
 if (isset($_POST['election_name'])) {
     $election_name = trim($_POST['election_name']);
     try {
-        $stmt = $pdo->prepare("UPDATE election_status SET election_name = ? ORDER BY id DESC LIMIT 1");
+        // Update the most recent election status record with the new name
+        $stmt = $pdo->prepare("
+            UPDATE election_status 
+            SET election_name = ? 
+            WHERE id = (SELECT id FROM (SELECT id FROM election_status ORDER BY id DESC LIMIT 1) AS temp)
+        ");
         $stmt->execute([$election_name]);
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
