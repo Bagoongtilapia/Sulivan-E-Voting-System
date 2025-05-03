@@ -99,7 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// If not a POST request, redirect with error
-$_SESSION['login_error'] = 'Invalid request method';
+// If not a POST request, just redirect to index without error
 header('Location: ../index.php');
 exit();
