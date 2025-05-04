@@ -29,6 +29,7 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Voters - E-VOTE!</title>
+    <link rel="icon" type="image/x-icon" href="/Sulivan-E-Voting-System/image/favicon.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
@@ -527,6 +528,52 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .table td:first-child {
             text-align: center;
         }
+
+        /* Add these styles to your existing styles */
+        .import-results .alert {
+            border: none;
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .import-results .alert-success {
+            background-color: #E8FFF1;
+            color: #0D9448;
+            border-left: 4px solid #0D9448;
+        }
+
+        .import-results .alert-warning {
+            background-color: #FFF5E8;
+            color: #B65C12;
+            border-left: 4px solid #B65C12;
+        }
+
+        .import-results .alert-info {
+            background-color: #E8F4FF;
+            color: #0D6EFD;
+            border-left: 4px solid #0D6EFD;
+        }
+
+        .import-results ul {
+            margin-bottom: 0;
+            padding-left: 1.5rem;
+        }
+
+        .import-results li {
+            margin-bottom: 0.25rem;
+        }
+
+        .import-results li:last-child {
+            margin-bottom: 0;
+        }
+
+        .import-results h6 {
+            color: inherit;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -600,10 +647,8 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php endif; ?>
                 
                 <?php if (isset($_GET['success'])): ?>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class='bx bx-check-circle me-2'></i>
-                        <?php echo htmlspecialchars($_GET['success']); ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="import-results">
+                        <?php echo $_GET['success']; ?>
                     </div>
                 <?php endif; ?>
 
@@ -619,6 +664,9 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <div class="d-flex gap-2">
                                 <button id="deleteSelected" class="btn btn-danger btn-bulk-delete">
                                     <i class='bx bx-trash me-2'></i>Delete Selected
+                                </button>
+                                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importVoterModal">
+                                    <i class='bx bx-import me-2'></i>Import Voters
                                 </button>
                                 <button class="btn-add-main" data-bs-toggle="modal" data-bs-target="#addVoterModal" 
                                         data-bs-toggle="tooltip" data-bs-placement="left" 
@@ -637,8 +685,10 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <th>
                                             <input type="checkbox" id="selectAll" class="form-check-input">
                                         </th>
+                                    
                                         <th data-bs-toggle="tooltip" title="Voter's full name">Name</th>
                                         <th data-bs-toggle="tooltip" title="Voter's email address for login">Email</th>
+                                        <th data-bs-toggle="tooltip" title="Voter's LRN">LRN</th>
                                         <th data-bs-toggle="tooltip" title="Current voting status">Status</th>
                                         <th data-bs-toggle="tooltip" title="Available actions depend on election phase">Actions</th>
                                     </tr>
@@ -651,6 +701,7 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         </td>
                                         <td><?php echo htmlspecialchars($voter['name']); ?></td>
                                         <td><?php echo htmlspecialchars($voter['email']); ?></td>
+                                        <td><?php echo htmlspecialchars($voter['lrn']); ?></td>
                                         <td>
                                             <span class="status-badge <?php echo $voter['has_voted'] ? 'voted' : 'not-voted'; ?>"
                                                   data-bs-toggle="tooltip" 
@@ -718,6 +769,11 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <label for="email" class="form-label">Email Address</label>
                             <input type="email" class="form-control" id="email" name="email" required>
                         </div>
+
+                        <div class="mb-3">
+                            <label for="lrn" class="form-label">LRN (Learner Reference Number)</label>
+                            <input type="text" class="form-control" id="lrn" name="lrn" required>
+                        </div>
                        
                         <div class="d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
@@ -770,6 +826,42 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </form>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Voter Modal -->
+    <div class="modal fade" id="importVoterModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import Voters from Excel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class='bx bx-info-circle me-2'></i>
+                        Please ensure your Excel file has the following columns in order:
+                        <ol class="mt-2">
+                            <li>Full Name</li>
+                            <li>Email Address</li>
+                            <li>LRN (Learner Reference Number)</li>
+                        </ol>
+                    </div>
+                    <form action="process_excel.php" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="action" value="import">
+                        <div class="mb-3">
+                            <label for="excel_file" class="form-label">Select Excel File</label>
+                            <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx,.xls" required>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">
+                                <i class='bx bx-import me-2'></i>Import
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -883,10 +975,11 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
             });
         });
 
-        function editVoter(id, name, email) {
+        function editVoter(id, name, email, lrn) {
             document.getElementById('edit_voter_id').value = id;
             document.getElementById('edit_name').value = name;
             document.getElementById('edit_email').value = email;
+            document.getElementById('edit_lrn').value = lrn;
             document.getElementById('edit_password').value = '';
             new bootstrap.Modal(document.getElementById('editVoterModal')).show();
         }

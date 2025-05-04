@@ -222,6 +222,7 @@ if (($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['ac
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
+    $lrn = trim($_POST['lrn'] ?? '');
 
     if (empty($name) || empty($email)) {
         header('Location: manage_voters.php?error=Name and email are required');
@@ -232,8 +233,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($_POST['action']) && $_POST['action'] === 'edit') {
             // Edit existing voter
             $voter_id = $_POST['voter_id'];
-            $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ? WHERE id = ? AND role = 'Student'");
-            $stmt->execute([$name, $email, $voter_id]);
+            $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, lrn = ? WHERE id = ? AND role = 'Student'");
+            $stmt->execute([$name, $email, $lrn, $voter_id]);
             header('Location: manage_voters.php?success=Voter updated successfully');
         } else {
             // Add new voter
@@ -241,8 +242,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
             
             // Insert the new user with hashed password
-            $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'Student')");
-            if ($stmt->execute([$name, $email, $hashedPassword])) {
+            $stmt = $pdo->prepare("INSERT INTO users (name, email, password, lrn, role) VALUES (?, ?, ?, ?, 'Student')");
+            if ($stmt->execute([$name, $email, $hashedPassword, $lrn])) {
                 // Send email notification
                 $mail = new PHPMailer(true);
                 try {
