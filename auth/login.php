@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
             $mail->Username = 'sulivannationalhighschool@gmail.com';
-            $mail->Password = 'nqhb kdea brfc xwvw';
+            $mail->Password = 'admf ihhi fruj jlcu';
             $mail->SMTPSecure = 'tls';
             $mail->Port = 587;
 
