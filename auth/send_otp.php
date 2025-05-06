@@ -38,7 +38,7 @@ try {
     $mail->Host = 'smtp.gmail.com';
     $mail->SMTPAuth = true;
     $mail->Username = 'sulivannationalhighschool@gmail.com'; // Replace with your email
-    $mail->Password = 'nqhb kdea brfc xwvw'; // Replace with your app password
+    $mail->Password = 'admf ihhi fruj jlcu'; // Replace with your app password
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port = 587;
 
