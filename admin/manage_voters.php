@@ -643,9 +643,7 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
 
                 <?php if (isset($_GET['success'])): ?>
-                    <div class="alert alert-success" role="alert">
-                        <i class='bx bx-check-circle me-2'></i><?php echo htmlspecialchars($_GET['success']); ?>
-                    </div>
+                    <?php echo $_GET['success']; ?>
                 <?php endif; ?>
 
                 <?php if (isset($_GET['error'])): ?>

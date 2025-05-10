@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // Commit the transaction
         $pdo->commit();
-        header('Location: manage_voters.php?success=Voter successfully deleted from the system');
+        header('Location: manage_voters.php?success=' . urlencode("<div class='alert alert-success mb-3'><i class='bx bx-check-circle me-2'></i>Voter(s) successfully deleted from the system.</div>"));
         exit();
     } catch (PDOException $e) {
         if ($pdo->inTransaction()) {
@@ -170,7 +170,7 @@ if (($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['ac
 
                 // If we got here, everything worked
                 $pdo->commit();
-                header('Location: manage_voters.php?success=Voter successfully deleted from the system');
+                header('Location: manage_voters.php?success=' . urlencode("<div class='alert alert-success mb-3'><i class='bx bx-check-circle me-2'></i>Voter successfully deleted from the system.</div>"));
                 exit();
             } catch (PDOException $e) {
                 // Make sure to rollback if there's an active transaction
@@ -251,22 +251,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("INSERT INTO users (name, email, password, lrn, role) VALUES (?, ?, ?, ?, 'Student')");
             $stmt->execute([$name, $email, $hashed_password, $lrn]);
             
-            // Send email with credentials
-            $to = $email;
-            $subject = "Your E-VOTE! Account Credentials";
-            $message = "Hello $name,\n\n";
-            $message .= "Your account has been created. Here are your login credentials:\n\n";
-            $message .= "Email: $email\n";
-            $message .= "Password: $password\n\n";
-            $message .= "Please login and change your password immediately.\n\n";
-            $message .= "Best regards,\nE-VOTE! Team";
-            $headers = "From: noreply@evote.com";
+            // Send email with credentials using PHPMailer
+            try {
+                $mail = new PHPMailer(true);
+                
+                // Server settings
+                $mail->isSMTP();
+                $mail->Host = 'smtp.gmail.com';
+                $mail->SMTPAuth = true;
+                $mail->Username = 'sulivannationalhighschool@gmail.com';
+                $mail->Password = 'admf ihhi fruj jlcu';
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                $mail->Port = 587;
 
-            mail($to, $subject, $message, $headers);
+                // Recipients
+                $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-VOTE');
+                $mail->addAddress($email, $name);
 
-            header('Location: manage_voters.php?success=Voter added successfully');
+                // Content
+                $mail->isHTML(true);
+                $mail->Subject = 'Your E-VOTE! Account Credentials';
+                $mail->Body = "
+                    <h2>Welcome to E-VOTE!</h2>
+                    <p>Hello {$name},</p>
+                    <p>Your account has been created successfully.</p>
+                    <p>Here are your login credentials:</p>
+                    <p>Email: {$email}</p>
+                    <p>Temporary Password:</p>
+                    <div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;'>
+                        <h1 style='color: #393CB2; margin: 0; letter-spacing: 5px;'>{$password}</h1>
+                    </div>
+                    <p>Please log in and change your password immediately.</p>
+                    <p>Best regards,<br>E-VOTE! Team</p>
+                ";
+
+                $mail->send();
+                header('Location: manage_voters.php?success=Voter added successfully. Login credentials have been sent via email.');
+            } catch (Exception $e) {
+                error_log("Failed to send email: " . $mail->ErrorInfo);
+                header('Location: manage_voters.php?error=Voter added but failed to send email notification');
+            }
+            exit();
         } catch (PDOException $e) {
             header('Location: manage_voters.php?error=Failed to add voter');
+            exit();
         }
     } else if (isset($_POST['action']) && $_POST['action'] === 'edit') {
         // Edit existing voter

@@ -206,13 +206,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
         // Prepare success/error message
         $message = "<div class='alert alert-success mb-3'>";
         $message .= "<i class='bx bx-check-circle me-2'></i>";
-        $message .= "Successfully imported <strong>$successCount</strong> voters.";
+        $message .= "Voters Imported Successfully $successCount new voters to the system.";
         $message .= "</div>";
 
         if ($errorCount > 0) {
             $message .= "<div class='alert alert-warning mb-3'>";
             $message .= "<i class='bx bx-error-circle me-2'></i>";
-            $message .= "Failed to import <strong>$errorCount</strong> voters.";
+            $message .= "We couldn't add $errorCount voters. Here's why:";
             $message .= "</div>";
 
             if (!empty($errors)) {
@@ -220,6 +220,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
                 $message .= "<h6 class='mb-2'><i class='bx bx-info-circle me-2'></i>Details:</h6>";
                 $message .= "<ul class='mb-0'>";
                 foreach ($errors as $error) {
+                    // Make error messages more user-friendly
+                    $error = str_replace("Row ", "Line ", $error);
+                    $error = str_replace("has missing data", "is missing some information", $error);
+                    $error = str_replace("has invalid email format", "has an incorrect email format", $error);
+                    $error = str_replace("Email already exists", "This email is already registered", $error);
+                    $error = str_replace("LRN already exists", "This LRN is already registered", $error);
+                    $error = str_replace("Failed to insert", "Could not add", $error);
+                    $error = str_replace("Voter added successfully but failed to send email notification", "Account created but couldn't send the email", $error);
                     $message .= "<li>$error</li>";
                 }
                 $message .= "</ul>";
