@@ -206,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
         // Prepare success/error message
         $message = "<div class='alert alert-success mb-3'>";
         $message .= "<i class='bx bx-check-circle me-2'></i>";
-        $message .= "Voters Imported Successfully $successCount new voters to the system.";
+        $message .= "Voters Imported Successfully, $successCount new voters to the system.";
         $message .= "</div>";
 
         if ($errorCount > 0) {
