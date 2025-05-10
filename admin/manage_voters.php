@@ -771,6 +771,7 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="modal-body">
 
                     <form action="process_voter.php" method="POST">
+                        <input type="hidden" name="action" value="add">
                         <div class="mb-3">
                             <label for="name" class="form-label">Full Name</label>
                             <input type="text" class="form-control" id="name" name="name" required>
