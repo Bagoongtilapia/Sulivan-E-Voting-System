@@ -347,9 +347,20 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         /* Alert Styles */
         .alert {
-            border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            border: none;
+        }
+
+        .alert-success {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success-color);
+        }
+
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger-color);
         }
 
         .alert i {
@@ -623,9 +634,25 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             <!-- Main Content -->
             <div class="col-md-10 main-content">
-                <div class="section-header d-flex justify-content-between align-items-center mb-4">
-                    <h2 style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-size: 24px; color: var(--primary-color); min-width: 200px;">Manage Voters</h2>
+                <div class="section-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <h2 class="mb-3" style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-size: 24px; color: var(--primary-color);">Manage Voters</h2>
+                        </div>
+                    </div>
                 </div>
+
+                <?php if (isset($_GET['success'])): ?>
+                    <div class="alert alert-success" role="alert">
+                        <i class='bx bx-check-circle me-2'></i><?php echo htmlspecialchars($_GET['success']); ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (isset($_GET['error'])): ?>
+                    <div class="alert alert-danger" role="alert">
+                        <i class='bx bx-error-circle me-2'></i><?php echo htmlspecialchars($_GET['error']); ?>
+                    </div>
+                <?php endif; ?>
 
                 <?php if ($electionStatus !== 'Pre-Voting'): ?>
                     <div class="alert alert-info mb-4">
@@ -635,20 +662,6 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <?php else: ?>
                             Voter management is disabled after the election has ended. Please wait until the next pre-voting phase.
                         <?php endif; ?>
-                    </div>
-                <?php endif; ?>
-
-                <?php if (isset($_GET['error'])): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class='bx bx-error-circle me-2'></i>
-                        <?php echo htmlspecialchars($_GET['error']); ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
-                
-                <?php if (isset($_GET['success'])): ?>
-                    <div class="import-results">
-                        <?php echo $_GET['success']; ?>
                     </div>
                 <?php endif; ?>
 
@@ -668,9 +681,7 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importVoterModal">
                                     <i class='bx bx-import me-2'></i>Import Voters
                                 </button>
-                                <button class="btn-add-main" data-bs-toggle="modal" data-bs-target="#addVoterModal" 
-                                        data-bs-toggle="tooltip" data-bs-placement="left" 
-                                        title="Add a new voter to the system">
+                                <button class="btn-add-main" data-bs-toggle="modal" data-bs-target="#addVoterModal">
                                     <i class='bx bx-plus'></i>
                                     Add New Voter
                                 </button>
@@ -760,6 +771,7 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="modal-body">
 
                     <form action="process_voter.php" method="POST">
+                        <input type="hidden" name="action" value="add">
                         <div class="mb-3">
                             <label for="name" class="form-label">Full Name</label>
                             <input type="text" class="form-control" id="name" name="name" required>
@@ -772,7 +784,12 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                         <div class="mb-3">
                             <label for="lrn" class="form-label">LRN (Learner Reference Number)</label>
-                            <input type="text" class="form-control" id="lrn" name="lrn" required>
+                            <input type="text" class="form-control" id="lrn" name="lrn" 
+                                   pattern="[0-9]{12}" 
+                                   maxlength="12" 
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                   required>
+                            <small class="text-muted">Enter exactly 12 numbers</small>
                         </div>
                        
                         <div class="d-flex justify-content-end gap-2">

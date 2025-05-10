@@ -220,73 +220,60 @@ if (($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['ac
 
 // Handle regular form submissions (Add/Edit voter)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = trim($_POST['name'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $lrn = trim($_POST['lrn'] ?? '');
+    $action = $_POST['action'] ?? '';
 
-    if (empty($name) || empty($email)) {
-        header('Location: manage_voters.php?error=Name and email are required');
-        exit();
-    }
+    if ($action === 'add') {
+        $name = trim($_POST['name']);
+        $email = trim($_POST['email']);
+        $lrn = trim($_POST['lrn']);
 
-    try {
-        if (isset($_POST['action']) && $_POST['action'] === 'edit') {
-            // Edit existing voter
-            $voter_id = $_POST['voter_id'];
-            $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, lrn = ? WHERE id = ? AND role = 'Student'");
-            $stmt->execute([$name, $email, $lrn, $voter_id]);
-            header('Location: manage_voters.php?success=Voter updated successfully');
-        } else {
-            // Add new voter
-            $tempPassword = generatePassword();
-            $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
-            
-            // Insert the new user with hashed password
-            $stmt = $pdo->prepare("INSERT INTO users (name, email, password, lrn, role) VALUES (?, ?, ?, ?, 'Student')");
-            if ($stmt->execute([$name, $email, $hashedPassword, $lrn])) {
-                // Send email notification
-                $mail = new PHPMailer(true);
-                try {
-                    $mail->isSMTP();
-                    $mail->Host = 'smtp.gmail.com';
-                    $mail->SMTPAuth = true;
-                    $mail->Username = 'sulivannationalhighschool@gmail.com';
-                    $mail->Password = 'admf ihhi fruj jlcu';
-                    $mail->SMTPSecure = 'tls';
-                    $mail->Port = 587;
-
-                    $mail->setFrom('sulivannationalhighschool@gmail.com', 'E-VOTE');
-                    $mail->addAddress($email, $name);
-                    $mail->isHTML(true);
-                    $mail->Subject = 'Your New Account Details';
-                    $mail->Body = "
-                        Hi $name,<br><br>
-                        Your account has been created.<br>
-                        Temporary Password: <br>
-                        <div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;'>
-                            <h1 style='color: #393CB2; margin: 0; letter-spacing: 5px;'>$tempPassword</h1>
-                        </div>
-                        Please log in and reset your password immediately.<br><br>
-                    ";
-                    
-                    $mail->send();
-                    header('Location: manage_voters.php?success=Voter added successfully and login credentials sent via email');
-                } catch (Exception $e) {
-                    // Log the error but don't show technical details to user
-                    error_log("Failed to send email: " . $mail->ErrorInfo);
-                    header('Location: manage_voters.php?success=Voter added successfully but failed to send email notification');
-                }
-            } else {
-                header('Location: manage_voters.php?error=Failed to add voter');
-            }
+        // Check if LRN already exists
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE lrn = ?");
+        $stmt->execute([$lrn]);
+        if ($stmt->fetchColumn() > 0) {
+            header('Location: manage_voters.php?error=LRN already exists');
             exit();
         }
-    } catch (PDOException $e) {
-        if ($e->getCode() == 23000) { // Duplicate entry error
+
+        // Check if email already exists
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        if ($stmt->fetchColumn() > 0) {
             header('Location: manage_voters.php?error=Email already exists');
-        } else {
-            header('Location: manage_voters.php?error=Failed to process voter');
+            exit();
         }
+
+        // Generate a random password
+        $password = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 8);
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+        try {
+            $stmt = $pdo->prepare("INSERT INTO users (name, email, password, lrn, role) VALUES (?, ?, ?, ?, 'Student')");
+            $stmt->execute([$name, $email, $hashed_password, $lrn]);
+            
+            // Send email with credentials
+            $to = $email;
+            $subject = "Your E-VOTE! Account Credentials";
+            $message = "Hello $name,\n\n";
+            $message .= "Your account has been created. Here are your login credentials:\n\n";
+            $message .= "Email: $email\n";
+            $message .= "Password: $password\n\n";
+            $message .= "Please login and change your password immediately.\n\n";
+            $message .= "Best regards,\nE-VOTE! Team";
+            $headers = "From: noreply@evote.com";
+
+            mail($to, $subject, $message, $headers);
+
+            header('Location: manage_voters.php?success=Voter added successfully');
+        } catch (PDOException $e) {
+            header('Location: manage_voters.php?error=Failed to add voter');
+        }
+    } else if (isset($_POST['action']) && $_POST['action'] === 'edit') {
+        // Edit existing voter
+        $voter_id = $_POST['voter_id'];
+        $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, lrn = ? WHERE id = ? AND role = 'Student'");
+        $stmt->execute([$_POST['name'], $_POST['email'], $_POST['lrn'], $voter_id]);
+        header('Location: manage_voters.php?success=Voter updated successfully');
     }
     exit();
 }
