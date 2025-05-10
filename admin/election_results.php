@@ -686,7 +686,7 @@ switch($electionStatus) {
                     <div class="text-center mb-4 pdf-header">
                         <h1 class="mb-2">Election Results</h1>
                         <h3 class="text-primary mb-4"><?php echo htmlspecialchars($electionName); ?></h3>
-                        <p class="text-muted">Generated on: <?php echo date('F j, Y g:i A'); ?></p>
+                        <p class="text-muted" id="pdf-timestamp">Generated on: <?php echo date('F j, Y g:i A'); ?></p>
                     </div>
                     <?php if (empty($positions)): ?>
                         <div class="alert alert-info">
@@ -765,7 +765,20 @@ switch($electionStatus) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function generatePDF() {
+            // Set real-time timestamp
+            const now = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
+            document.getElementById('pdf-timestamp').textContent = 'Generated on: ' + now.toLocaleString('en-US', options);
+
             const element = document.getElementById('pdf-content');
+            const pdfHeader = element.querySelector('.pdf-header');
+            if (pdfHeader) {
+                pdfHeader.style.display = 'block';
+            }
+
+            // Force a reflow to ensure the DOM is updated before generating the PDF
+            void element.offsetHeight;
+
             const opt = {
                 margin: 1,
                 filename: '<?php echo preg_replace("/[^a-zA-Z0-9]+/", "_", $electionName); ?>_results.pdf',
@@ -782,12 +795,6 @@ switch($electionStatus) {
                 },
                 pagebreak: { mode: 'avoid-all' }
             };
-
-            // Force show the PDF header
-            const pdfHeader = element.querySelector('.pdf-header');
-            if (pdfHeader) {
-                pdfHeader.style.display = 'block';
-            }
 
             html2pdf().set(opt).from(element).save().then(() => {
                 // Hide the PDF header again after generating
