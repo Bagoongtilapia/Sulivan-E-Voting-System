@@ -590,6 +590,7 @@ if (!file_exists($uploadDir)) {
                 </div>
                 <form action="process_candidate.php" method="POST" enctype="multipart/form-data" id="addCandidateForm">
                     <div class="modal-body">
+                        <div id="addCandidateError" class="alert alert-danger d-none"></div>
                         <div class="text-center mb-4">
                             <div class="image-preview-wrapper">
                                 <img src="../uploads/candidates/default.png" alt="" class="image-preview" id="imagePreview">
@@ -832,6 +833,8 @@ if (!file_exists($uploadDir)) {
                 
                 // Remove any existing success messages
                 $('.alert-success').remove();
+                // Hide previous error
+                $('#addCandidateError').addClass('d-none').text('');
                 
                 // Form validation
                 const name = $('#candidateName').val().trim();
@@ -843,36 +846,37 @@ if (!file_exists($uploadDir)) {
                 let errorMessage = '';
                 
                 if (!name) {
-                    errorMessage += 'Please enter candidate name.\n';
+                    errorMessage += 'Please enter candidate name.<br>';
+                } else if (!/^[A-Za-z\s]+$/.test(name)) {
+                    errorMessage += 'Candidate name should only contain letters and spaces.<br>';
                 }
                 
                 if (!position) {
-                    errorMessage += 'Please select a position.\n';
+                    errorMessage += 'Please select a position.<br>';
                 }
                 
                 if (!platform) {
-                    errorMessage += 'Please enter candidate platform.\n';
+                    errorMessage += 'Please enter candidate platform.<br>';
                 }
                 
                 if (!image) {
-                    errorMessage += 'Please upload candidate photo.\n';
+                    errorMessage += 'Please upload candidate photo.<br>';
                 } else {
                     // Validate image type
                     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
                     if (!allowedTypes.includes(image.type)) {
-                        errorMessage += 'Please upload a valid image (JPEG, PNG, JPG).\n';
+                        errorMessage += 'Please upload a valid image (JPEG, PNG, JPG).<br>';
                     }
-                    
                     // Validate image size (max 2MB)
                     const maxSize = 2 * 1024 * 1024; // 2MB in bytes
                     if (image.size > maxSize) {
-                        errorMessage += 'Image size should not exceed 2MB.\n';
+                        errorMessage += 'Image size should not exceed 2MB.<br>';
                     }
                 }
                 
                 // If there are validation errors, show them and stop submission
                 if (errorMessage) {
-                    alert(errorMessage);
+                    $('#addCandidateError').removeClass('d-none').html(errorMessage);
                     return false;
                 }
                 

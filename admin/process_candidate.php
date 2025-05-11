@@ -98,6 +98,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Candidate not found');
             }
 
+            // Validate name format if name is being updated
+            if (isset($_POST['name'])) {
+                $name = trim($_POST['name']);
+                if (!preg_match('/^[A-Za-z\s]+$/', $name)) {
+                    throw new Exception('Candidate name should only contain letters and spaces');
+                }
+            }
+
             if (!empty($_FILES['image']['name'])) {
                 // Get old image path
                 $stmt = $pdo->prepare("SELECT image_path FROM candidates WHERE id = ?");
@@ -138,6 +146,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (empty($name)) {
                 throw new Exception('Candidate name is required');
+            }
+
+            // Validate name format (letters and spaces only)
+            if (!preg_match('/^[A-Za-z\s]+$/', $name)) {
+                throw new Exception('Candidate name should only contain letters and spaces');
             }
 
             // Handle image upload

@@ -496,8 +496,9 @@ try {
                     <h5 class="modal-title">Add New Position</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form action="process_position.php" method="POST">
+                <form action="process_position.php" method="POST" id="addPositionForm">
                     <div class="modal-body">
+                        <div id="addPositionError" class="alert alert-danger d-none"></div>
                         <div class="mb-3">
                             <label for="position_name" class="form-label">Position Name</label>
                             <input type="text" class="form-control" id="position_name" name="position_name" required>
@@ -525,9 +526,10 @@ try {
                     <h5 class="modal-title">Edit Position</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form action="process_position.php" method="POST">
+                <form action="process_position.php" method="POST" id="editPositionForm">
                     <input type="hidden" name="position_id" id="edit_position_id">
                     <div class="modal-body">
+                        <div id="editPositionError" class="alert alert-danger d-none"></div>
                         <div class="mb-3">
                             <label for="edit_position_name" class="form-label">Position Name</label>
                             <input type="text" class="form-control" id="edit_position_name" name="position_name" required>
@@ -592,6 +594,40 @@ try {
                 $('#delete_position_id').val(id);
                 $('#delete_position_name').text(name);
                 $('#deletePositionModal').modal('show');
+            });
+
+            // Add Position Form Validation
+            $('#addPositionForm').submit(function(e) {
+                $('#addPositionError').addClass('d-none').text('');
+                let errorMessage = '';
+                const name = $('#position_name').val().trim();
+                if (!name) {
+                    errorMessage += 'Please enter position name.<br>';
+                } else if (!/^[A-Za-z\s]+$/.test(name)) {
+                    errorMessage += 'Position name should only contain letters and spaces.<br>';
+                }
+                if (errorMessage) {
+                    $('#addPositionError').removeClass('d-none').html(errorMessage);
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // Edit Position Form Validation
+            $('#editPositionForm').submit(function(e) {
+                $('#editPositionError').addClass('d-none').text('');
+                let errorMessage = '';
+                const name = $('#edit_position_name').val().trim();
+                if (!name) {
+                    errorMessage += 'Please enter position name.<br>';
+                } else if (!/^[A-Za-z\s]+$/.test(name)) {
+                    errorMessage += 'Position name should only contain letters and spaces.<br>';
+                }
+                if (errorMessage) {
+                    $('#editPositionError').removeClass('d-none').html(errorMessage);
+                    e.preventDefault();
+                    return false;
+                }
             });
         });
     </script>

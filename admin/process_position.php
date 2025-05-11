@@ -20,6 +20,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit();
                 }
 
+                // Validate position name (letters and spaces only)
+                if (!preg_match('/^[A-Za-z\s]+$/', $position_name)) {
+                    header('Location: manage_positions.php?error=Position name should only contain letters and spaces');
+                    exit();
+                }
+
                 if ($max_votes < 1) {
                     header('Location: manage_positions.php?error=Maximum votes must be at least 1');
                     exit();
@@ -38,6 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (empty($position_name)) {
                     header('Location: manage_positions.php?error=Position name cannot be empty');
+                    exit();
+                }
+
+                // Validate position name (letters and spaces only)
+                if (!preg_match('/^[A-Za-z\s]+$/', $position_name)) {
+                    header('Location: manage_positions.php?error=Position name should only contain letters and spaces');
                     exit();
                 }
 
