@@ -292,7 +292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ";
 
                 $mail->send();
-                header('Location: manage_voters.php?success=Voter added successfully. Login credentials have been sent via email.');
+                header('Location: manage_voters.php?success=' . urlencode("<div class='alert alert-success alert-dismissible fade show' role='alert'><i class='bx bx-check-circle me-2'></i>Voter added successfully. Login credentials have been sent via email.<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>"));
             } catch (Exception $e) {
                 error_log("Failed to send email: " . $mail->ErrorInfo);
                 header('Location: manage_voters.php?error=Voter added but failed to send email notification');
