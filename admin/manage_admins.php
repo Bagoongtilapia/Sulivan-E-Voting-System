@@ -575,7 +575,8 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form action="process_admin.php" method="POST">
+                    <form action="process_admin.php" method="POST" id="addAdminForm">
+                        <div id="addAdminError" class="alert alert-danger d-none"></div>
                         <div class="mb-3">
                             <label for="name" class="form-label">Full Name</label>
                             <input type="text" class="form-control" id="name" name="name" required>
@@ -677,6 +678,23 @@ $subAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 // Append form to body and submit
                 document.body.appendChild(form);
                 form.submit();
+            });
+
+            // Add Admin Form Validation
+            $('#addAdminForm').submit(function(e) {
+                $('#addAdminError').addClass('d-none').text('');
+                let errorMessage = '';
+                const name = $('#name').val().trim();
+                if (!name) {
+                    errorMessage += 'Please enter full name.<br>';
+                } else if (!/^[A-Za-z\s]+$/.test(name)) {
+                    errorMessage += 'Full name should only contain letters and spaces.<br>';
+                }
+                if (errorMessage) {
+                    $('#addAdminError').removeClass('d-none').html(errorMessage);
+                    e.preventDefault();
+                    return false;
+                }
             });
         });
     </script>

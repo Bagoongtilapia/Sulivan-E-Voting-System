@@ -227,6 +227,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim($_POST['email']);
         $lrn = trim($_POST['lrn']);
 
+        // Validate name (letters and spaces only)
+        if (!preg_match('/^[A-Za-z\s]+$/', $name)) {
+            header('Location: manage_voters.php?error=Full name should only contain letters and spaces');
+            exit();
+        }
+
         // Check if LRN already exists
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE lrn = ?");
         $stmt->execute([$lrn]);
@@ -299,8 +305,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else if (isset($_POST['action']) && $_POST['action'] === 'edit') {
         // Edit existing voter
         $voter_id = $_POST['voter_id'];
+        $name = trim($_POST['name']);
+        $email = trim($_POST['email']);
+        $lrn = trim($_POST['lrn']);
+
+        // Validate name (letters and spaces only)
+        if (!preg_match('/^[A-Za-z\s]+$/', $name)) {
+            header('Location: manage_voters.php?error=Full name should only contain letters and spaces');
+            exit();
+        }
+
         $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, lrn = ? WHERE id = ? AND role = 'Student'");
-        $stmt->execute([$_POST['name'], $_POST['email'], $_POST['lrn'], $voter_id]);
+        $stmt->execute([$name, $email, $lrn, $voter_id]);
         header('Location: manage_voters.php?success=Voter updated successfully');
     }
     exit();

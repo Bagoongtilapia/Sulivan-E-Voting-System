@@ -126,6 +126,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
                 continue;
             }
 
+            // Validate name (letters and spaces only)
+            if (!preg_match('/^[A-Za-z\s]+$/', $name)) {
+                $errorCount++;
+                $errors[] = "Row " . ($rowIndex + 2) . ": Full name should only contain letters and spaces: $name";
+                continue;
+            }
+
             // Validate email format
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $errorCount++;

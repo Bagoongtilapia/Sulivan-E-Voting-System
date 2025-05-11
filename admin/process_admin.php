@@ -120,6 +120,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
         exit();
     }
 
+    // Validate name (letters and spaces only)
+    if (!preg_match('/^[A-Za-z\s]+$/', $name)) {
+        header('Location: manage_admins.php?error=Full name should only contain letters and spaces');
+        exit();
+    }
+
     try {
         // Check if email already exists
         $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");

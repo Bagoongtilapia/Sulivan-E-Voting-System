@@ -768,8 +768,9 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <div class="modal-body">
 
-                    <form action="process_voter.php" method="POST">
+                    <form action="process_voter.php" method="POST" id="addVoterForm">
                         <input type="hidden" name="action" value="add">
+                        <div id="addVoterError" class="alert alert-danger d-none"></div>
                         <div class="mb-3">
                             <label for="name" class="form-label">Full Name</label>
                             <input type="text" class="form-control" id="name" name="name" required>
@@ -812,9 +813,10 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
 
                 <div class="modal-body">
-                    <form action="process_voter.php" method="POST">
+                    <form action="process_voter.php" method="POST" id="editVoterForm">
                         <input type="hidden" name="action" value="edit">
                         <input type="hidden" name="voter_id" id="edit_voter_id">
+                        <div id="editVoterError" class="alert alert-danger d-none"></div>
                         <div class="mb-3">
                             <label for="edit_name" class="form-label">Full Name</label>
                             <input type="text" class="form-control" id="edit_name" name="name" required>
@@ -987,6 +989,40 @@ $voters = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 // Append form to body and submit
                 document.body.appendChild(form);
                 form.submit();
+            });
+
+            // Add Voter Form Validation
+            $('#addVoterForm').submit(function(e) {
+                $('#addVoterError').addClass('d-none').text('');
+                let errorMessage = '';
+                const name = $('#name').val().trim();
+                if (!name) {
+                    errorMessage += 'Please enter full name.<br>';
+                } else if (!/^[A-Za-z\s]+$/.test(name)) {
+                    errorMessage += 'Full name should only contain letters and spaces.<br>';
+                }
+                if (errorMessage) {
+                    $('#addVoterError').removeClass('d-none').html(errorMessage);
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // Edit Voter Form Validation
+            $('#editVoterForm').submit(function(e) {
+                $('#editVoterError').addClass('d-none').text('');
+                let errorMessage = '';
+                const name = $('#edit_name').val().trim();
+                if (!name) {
+                    errorMessage += 'Please enter full name.<br>';
+                } else if (!/^[A-Za-z\s]+$/.test(name)) {
+                    errorMessage += 'Full name should only contain letters and spaces.<br>';
+                }
+                if (errorMessage) {
+                    $('#editVoterError').removeClass('d-none').html(errorMessage);
+                    e.preventDefault();
+                    return false;
+                }
             });
         });
 
